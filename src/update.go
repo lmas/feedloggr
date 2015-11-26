@@ -23,6 +23,7 @@ func UpdateFeeds(c *Config) error {
 
 	var feeds []*Feed
 	for _, f := range c.Feeds {
+		// TODO: run in new goroutines
 		r := rss.NewWithHandlers(5, false, db, db)
 		e = r.Fetch(f.Url, nil)
 		if e != nil {
@@ -53,6 +54,9 @@ func UpdateFeeds(c *Config) error {
 		"date_link": func(h int, t time.Time) string {
 			d := t.Add(time.Hour * time.Duration(h)).Format("2006-01-02")
 			return fmt.Sprintf("%s.html", d)
+		},
+		"format": func(t time.Time) string {
+			return t.Format("2006-01-02")
 		},
 	}
 	t := template.Must(template.New("TemplateName").Funcs(funcmap).Parse(HTML_BODY))

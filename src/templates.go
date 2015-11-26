@@ -6,7 +6,7 @@ const HTML_BODY = `
 	<head>
 		<meta charset="utf-8">
 		<title>
-			{{.Date}} | News
+			{{format .Date}} | News
 		</title>
 		<style type="text/css">
 			body {
