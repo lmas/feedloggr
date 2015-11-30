@@ -36,6 +36,12 @@ func UpdateFeeds(c *Config) error {
 			fmt.Printf("Error updating %s: %s\n", f.Title, e)
 			continue
 		}
+
+		if len(items) < 1 {
+			// Ignore any feeds with no new items
+			continue
+		}
+
 		if c.Verbose {
 			fmt.Printf("Got %d new items from: %s\n", len(items), f.Title)
 		}
