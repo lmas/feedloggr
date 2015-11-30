@@ -11,6 +11,9 @@ import (
 	rss "github.com/jteeuwen/go-pkg-rss"
 )
 
+// TODO: change to env var/flag instead
+const TIME_BETWEEN_FEEDS = 4 // In seconds
+
 func UpdateFeeds(c *Config) error {
 	db, e := OpenSqliteDB(c.Database)
 	if e != nil {
@@ -23,7 +26,6 @@ func UpdateFeeds(c *Config) error {
 
 	var feeds []*Feed
 	for _, f := range c.Feeds {
-		// TODO: run in new goroutines
 		r := rss.NewWithHandlers(5, false, db, db)
 		e = r.Fetch(f.Url, nil)
 		if e != nil {
@@ -51,6 +53,9 @@ func UpdateFeeds(c *Config) error {
 			Url:   f.Url,
 			Items: items,
 		})
+
+		// Slow down the amount of requests, to ensure we won't get spam blocked.
+		time.Sleep(time.Duration(TIME_BETWEEN_FEEDS) * time.Second)
 	}
 
 	if c.Verbose {
