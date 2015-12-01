@@ -12,7 +12,10 @@ import (
 )
 
 // TODO: change to env var/flag instead
-const TIME_BETWEEN_FEEDS = 4 // In seconds
+const TIME_BETWEEN_FEEDS = 2 // In seconds
+
+// TODO: set another global version const and use it here
+const USER_AGENT = "feedloggr2/0.1"
 
 func UpdateFeeds(c *Config) error {
 	db, e := OpenSqliteDB(c.Database)
@@ -27,6 +30,7 @@ func UpdateFeeds(c *Config) error {
 	var feeds []*Feed
 	for _, f := range c.Feeds {
 		r := rss.NewWithHandlers(5, false, db, db)
+		r.SetUserAgent(USER_AGENT)
 		e = r.Fetch(f.Url, nil)
 		if e != nil {
 			fmt.Printf("Error connecting to %s: %s\n", f.Title, e)
