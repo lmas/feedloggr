@@ -52,6 +52,7 @@ func UpdateFeeds(c *Config) error {
 			fmt.Printf("Got %d new items from: %s\n", len(items), f.Title)
 		}
 
+		// TODO: must sort the feeds after their names
 		feeds = append(feeds, &Feed{
 			Title: f.Title,
 			Url:   f.Url,
@@ -70,7 +71,7 @@ func UpdateFeeds(c *Config) error {
 			d := t.Add(time.Hour * time.Duration(h)).Format("2006-01-02")
 			return fmt.Sprintf("%s.html", d)
 		},
-		"format": func(t time.Time) string {
+		"format": func(t time.Time) string { // TODO: rename "format"
 			return t.Format("2006-01-02")
 		},
 	}
@@ -109,6 +110,20 @@ func UpdateFeeds(c *Config) error {
 	e = os.Symlink(file, path)
 	if e != nil {
 		panic(e) // TODO
+	}
+
+	path = filepath.Join(c.OutputPath, "style.css")
+	// With these flags we avoid overwriting an existing file
+	f, e = os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
+	defer f.Close()
+	if e == nil {
+		if c.Verbose {
+			fmt.Println("Generating style...")
+		}
+		_, e = f.WriteString(CSS_BODY)
+		if e != nil {
+			panic(e) // TODO
+		}
 	}
 
 	if c.Verbose {
