@@ -27,29 +27,22 @@ func OpenSqliteDB(args ...interface{}) (*DB, error) {
 	return &DB{&db}, nil
 }
 
-func (db *DB) GetItems(feed_url string) ([]*FeedItem, error) {
+func (db *DB) SaveItems(items []*FeedItem) {
+	tx := db.Begin()
+	tx.LogMode(false) // Don't show errors when UNIQUE fails
+
+	for _, i := range items {
+		tx.Create(i)
+	}
+
+	tx.Commit()
+}
+
+func (db *DB) GetItems(feed_url string) []*FeedItem {
 	var items []*FeedItem
 	// TODO: fix the feed url thing
 	db.Order("date desc, title").Where(
 		"feed = ? AND date(date) = date(?)", feed_url, Now(),
 	).Find(&items)
-	return items, nil
-}
-
-// Dummy func so go-pkg-rss will run.
-func (db *DB) ProcessChannels(feed *rss.Feed, channels []*rss.Channel) {
-}
-
-func (db *DB) ProcessItems(feed *rss.Feed, ch *rss.Channel, items []*rss.Item) {
-	tx := db.Begin()
-	tx.LogMode(false) // Don't show errors when UNIQUE fails
-	for _, it := range items {
-		tx.Create(&FeedItem{
-			Title: it.Title,
-			Url:   it.Links[0].Href,
-			Date:  Now(),
-			Feed:  feed.Url, // TODO: fix the feed url thing
-		})
-	}
-	tx.Commit()
+	return items
 }

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"html/template"
-
-	rss "github.com/jteeuwen/go-pkg-rss"
 )
 
 // TODO: change to env var/flag instead
@@ -24,44 +22,46 @@ func UpdateFeeds(c *Config) error {
 	}
 
 	if c.Verbose {
-		fmt.Println("Updating feeds...")
+		fmt.Println("Downloading feeds...")
 	}
-
-	var feeds []*Feed
+	d := NewDownloader(USER_AGENT)
+	var all_items []*FeedItem
 	for _, f := range c.Feeds {
-		r := rss.NewWithHandlers(5, false, db, db)
-		r.SetUserAgent(USER_AGENT)
-		e = r.Fetch(f.Url, nil)
+		items, e := d.DownloadFeed(f.Url)
 		if e != nil {
-			fmt.Printf("Error connecting to %s: %s\n", f.Title, e)
-			continue
-		}
-
-		items, e := db.GetItems(f.Url)
-		if e != nil {
-			fmt.Printf("Error updating %s: %s\n", f.Title, e)
+			fmt.Println(e)
 			continue
 		}
 
 		if len(items) < 1 {
-			// Ignore any feeds with no new items
 			continue
 		}
+		all_items = append(all_items, items...)
 
-		if c.Verbose {
-			fmt.Printf("Got %d new items from: %s\n", len(items), f.Title)
-		}
+		// Slow down the amount of requests, to ensure we won't get spam blocked.
+		time.Sleep(time.Duration(TIME_BETWEEN_FEEDS) * time.Second)
+	}
 
-		// TODO: must sort the feeds after their names
+	if c.Verbose {
+		fmt.Println("Saving feeds...")
+	}
+	db.SaveItems(all_items)
+
+	// Iterate over the feeds a 2nd time and grab all saved items for today
+	var feeds []*Feed
+	for _, f := range c.Feeds {
+		items := db.GetItems(f.Url)
 		feeds = append(feeds, &Feed{
 			Title: f.Title,
 			Url:   f.Url,
 			Items: items,
 		})
 
-		// Slow down the amount of requests, to ensure we won't get spam blocked.
-		time.Sleep(time.Duration(TIME_BETWEEN_FEEDS) * time.Second)
+		if c.Verbose {
+			fmt.Printf("%d items for: %s\n", len(items), f.Title)
+		}
 	}
+	// TODO: must sort the feeds after their names
 
 	if c.Verbose {
 		fmt.Println("Generating page...")
@@ -76,7 +76,7 @@ func UpdateFeeds(c *Config) error {
 		},
 	}
 	t := template.Must(template.New("TemplateName").Funcs(funcmap).Parse(HTML_BODY))
-	d := struct {
+	s := struct {
 		Date  time.Time
 		Feeds []*Feed
 	}{
@@ -89,7 +89,7 @@ func UpdateFeeds(c *Config) error {
 	if e != nil {
 		panic(e) // TODO
 	}
-	e = t.Execute(f, d)
+	e = t.Execute(f, s)
 	if e != nil {
 		panic(e) // TODO
 	}
