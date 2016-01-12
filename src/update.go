@@ -12,22 +12,49 @@ import (
 // TODO: change to env var/flag instead
 const TIME_BETWEEN_FEEDS = 2 // In seconds
 
-// TODO: set another global version const and use it here
-const USER_AGENT = "feedloggr2/0.1"
-
 func UpdateFeeds(c *Config) error {
 	db, e := OpenSqliteDB(c.Database)
 	if e != nil {
 		return e
 	}
 
-	if c.Verbose {
-		fmt.Println("Downloading feeds...")
+	d := NewDownloader("feedloggr2/" + VERSION)
+
+	u := &UpdateInstance{
+		Config:     c,
+		DB:         db,
+		Downloader: d,
 	}
-	d := NewDownloader(USER_AGENT)
+
+	return u.run()
+}
+
+type UpdateInstance struct {
+	Config     *Config
+	DB         *DB
+	Downloader *FeedDownloader
+}
+
+func (u *UpdateInstance) log(s string, args ...interface{}) {
+	if u.Config.Verbose {
+		fmt.Printf(s+"\n", args...)
+	}
+}
+
+func (u *UpdateInstance) run() error {
+	u.download_feeds()
+	feeds := u.get_feeds()
+	u.generate_page(feeds)
+	u.generate_style()
+	u.log("Done.")
+	return nil
+}
+
+func (u *UpdateInstance) download_feeds() {
+	u.log("Downloading feeds...")
 	var all_items []*FeedItem
-	for _, f := range c.Feeds {
-		items, e := d.DownloadFeed(f.Url)
+	for _, f := range u.Config.Feeds {
+		items, e := u.Downloader.DownloadFeed(f.Url)
 		if e != nil {
 			fmt.Println(e)
 			continue
@@ -41,31 +68,30 @@ func UpdateFeeds(c *Config) error {
 		// Slow down the amount of requests, to ensure we won't get spam blocked.
 		time.Sleep(time.Duration(TIME_BETWEEN_FEEDS) * time.Second)
 	}
+	u.log("Saving feeds...")
+	u.DB.SaveItems(all_items)
+}
 
-	if c.Verbose {
-		fmt.Println("Saving feeds...")
-	}
-	db.SaveItems(all_items)
-
+func (u *UpdateInstance) get_feeds() []*Feed {
 	// Iterate over the feeds a 2nd time and grab all saved items for today
-	var feeds []*Feed
-	for _, f := range c.Feeds {
-		items := db.GetItems(f.Url)
-		feeds = append(feeds, &Feed{
+	u.log("Getting today's news...")
+	var all_feeds []*Feed
+	for _, f := range u.Config.Feeds {
+		items := u.DB.GetItems(f.Url)
+		all_feeds = append(all_feeds, &Feed{
 			Title: f.Title,
 			Url:   f.Url,
 			Items: items,
 		})
 
-		if c.Verbose {
-			fmt.Printf("%d items for: %s\n", len(items), f.Title)
-		}
+		u.log("%d items for: %s", len(items), f.Title)
 	}
 	// TODO: must sort the feeds after their names
+	return all_feeds
+}
 
-	if c.Verbose {
-		fmt.Println("Generating page...")
-	}
+func (u *UpdateInstance) generate_page(feeds []*Feed) {
+	u.log("Generating page...")
 	funcmap := template.FuncMap{
 		"date_link": func(h int, t time.Time) string {
 			d := t.Add(time.Hour * time.Duration(h)).Format("2006-01-02")
@@ -75,7 +101,8 @@ func UpdateFeeds(c *Config) error {
 			return t.Format("2006-01-02")
 		},
 	}
-	t := template.Must(template.New("TemplateName").Funcs(funcmap).Parse(HTML_BODY))
+
+	t := template.Must(template.New("Page").Funcs(funcmap).Parse(HTML_BODY))
 	s := struct {
 		Date  time.Time
 		Feeds []*Feed
@@ -84,8 +111,9 @@ func UpdateFeeds(c *Config) error {
 		Feeds: feeds,
 	}
 	file := fmt.Sprintf("%s.html", Now().Format("2006-01-02"))
-	path := filepath.Join(c.OutputPath, file)
+	path := filepath.Join(u.Config.OutputPath, file)
 	f, e := os.Create(path)
+	defer f.Close()
 	if e != nil {
 		panic(e) // TODO
 	}
@@ -94,10 +122,8 @@ func UpdateFeeds(c *Config) error {
 		panic(e) // TODO
 	}
 
-	if c.Verbose {
-		fmt.Println("Updating symlink...")
-	}
-	path = filepath.Join(c.OutputPath, "index.html")
+	u.log("Updating symlink...")
+	path = filepath.Join(u.Config.OutputPath, "index.html")
 	e = os.Remove(path)
 	if e != nil {
 		perr, ok := e.(*os.PathError)
@@ -111,23 +137,18 @@ func UpdateFeeds(c *Config) error {
 	if e != nil {
 		panic(e) // TODO
 	}
+}
 
-	path = filepath.Join(c.OutputPath, "style.css")
+func (u *UpdateInstance) generate_style() {
+	path := filepath.Join(u.Config.OutputPath, "style.css")
 	// With these flags we avoid overwriting an existing file
-	f, e = os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
+	f, e := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
 	defer f.Close()
 	if e == nil {
-		if c.Verbose {
-			fmt.Println("Generating style...")
-		}
+		u.log("Generating style...")
 		_, e = f.WriteString(CSS_BODY)
 		if e != nil {
 			panic(e) // TODO
 		}
 	}
-
-	if c.Verbose {
-		fmt.Println("Done.")
-	}
-	return nil
 }
