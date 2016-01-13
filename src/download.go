@@ -16,7 +16,7 @@ type FeedDownloader struct {
 func NewDownloader(user_agent string) *FeedDownloader {
 	// Work around the funky model of go-pkg-rss and make a simpler interface.
 	f := &FeedDownloader{}
-	f.rss = rss.NewWithHandlers(5, false, f, f)
+	f.rss = rss.NewWithHandlers(0, false, f, f)
 	f.rss.SetUserAgent(user_agent)
 	f.fetch = f.rss.Fetch
 	return f
@@ -45,7 +45,6 @@ func (f *FeedDownloader) Clear() {
 }
 
 func (f *FeedDownloader) DownloadFeed(url string) ([]*FeedItem, error) {
-	// TODO: don't actually download a feed when running tests
 	defer f.Clear()
 	e := f.fetch(url, nil)
 	if e != nil {

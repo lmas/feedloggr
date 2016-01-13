@@ -57,7 +57,7 @@ func (u *UpdateInstance) download_feeds() {
 	for _, f := range u.Config.Feeds {
 		items, e := u.Downloader.DownloadFeed(f.Url)
 		if e != nil {
-			fmt.Println(e)
+			fmt.Println(e) // TODO
 			continue
 		}
 
@@ -79,6 +79,10 @@ func (u *UpdateInstance) get_feeds() []*Feed {
 	var all_feeds FeedSlice
 	for _, f := range u.Config.Feeds {
 		items := u.DB.GetItems(f.Url)
+		if len(items) < 1 {
+			continue
+		}
+
 		all_feeds = append(all_feeds, &Feed{
 			Title: f.Title,
 			Url:   f.Url,
