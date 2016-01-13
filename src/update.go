@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"html/template"
@@ -75,7 +76,7 @@ func (u *UpdateInstance) download_feeds() {
 func (u *UpdateInstance) get_feeds() []*Feed {
 	// Iterate over the feeds a 2nd time and grab all saved items for today
 	u.log("Getting today's news...")
-	var all_feeds []*Feed
+	var all_feeds FeedSlice
 	for _, f := range u.Config.Feeds {
 		items := u.DB.GetItems(f.Url)
 		all_feeds = append(all_feeds, &Feed{
@@ -86,7 +87,7 @@ func (u *UpdateInstance) get_feeds() []*Feed {
 
 		u.log("%d items for: %s", len(items), f.Title)
 	}
-	// TODO: must sort the feeds after their names
+	sort.Sort(all_feeds)
 	return all_feeds
 }
 

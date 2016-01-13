@@ -8,6 +8,20 @@ type Feed struct {
 	Items []*FeedItem
 }
 
+type FeedSlice []*Feed
+
+func (fs FeedSlice) Len() int {
+	return len(fs)
+}
+
+func (fs FeedSlice) Swap(i, j int) {
+	fs[i], fs[j] = fs[j], fs[i]
+}
+
+func (fs FeedSlice) Less(i, j int) bool {
+	return fs[i].Title < fs[j].Title
+}
+
 // TODO: make indexes
 type FeedItem struct {
 	ID    int
