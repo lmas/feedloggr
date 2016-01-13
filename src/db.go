@@ -41,7 +41,7 @@ func (db *DB) SaveItems(items []*FeedItem) {
 func (db *DB) GetItems(feed_url string) []*FeedItem {
 	var items []*FeedItem
 	// TODO: fix the feed url thing
-	db.Order("date desc, title").Where(
+	db.Order("title, date desc").Where(
 		"feed = ? AND date(date) = date(?)", feed_url, Now(),
 	).Find(&items)
 	return items
