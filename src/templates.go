@@ -2,67 +2,72 @@ package feedloggr2
 
 const CSS_BODY = `
 body {
-	margin: 40px;
-	margin-bottom: 20px;
-	line-height: 1.4;
+	margin: 20px 40px;
+	line-height: 1.5;
 	font-size: 16px;
 	font-family: monospace;
 	background-color: #FFF;
 	color: #444;
 }
-ol {
-	margin: 0px;
-}
-li.item {
-	margin-bottom:3px;
-}
-a {
+
+a, a:hover, a:visited {
 	text-decoration:none;
 	color: #444;
 }
-a:hover {
-	text-decoration:none;
-	color: #000;
-}
-a:visited {
-	color: #AAA;
-}
-.center {
+
+nav {
 	text-align: center;
+	margin-bottom: 20px;
 }
 
-#date_nav {
-	text-align: center;
-	margin-bottom: 25px;
-}
-#date_nav>a {
+nav > a {
 	border: 1px solid #DDD;
 	border-radius: 3px;
 	padding: 6px 12px;
 	font-weight: bold;
 }
 
-.panel {
+nav > a:hover {
+	background-color: #E6E6E6;
+	border-color: #ADADAD;
+}
+
+article {
 	border: 1px solid #DDD;
 	background-color: #FFF;
 	border-radius: 3px;
 	margin-bottom: 20px;
 }
-.panel-heading {
+
+article > h1 {
 	background-color: #EEE;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
 	border-bottom: 1px solid #DDD;
 	padding: 10px 15px;
+	margin: 0;
+	font-size: 16px;
+	font-weight: bold;
+	text-align: center;
 }
-.panel-heading>a:visited {
-	color: #444;
+
+article > ol {
+	margin: 15px;
 }
-.panel-heading>a:hover {
+
+article > ol > li > a:hover {
 	color: #000;
 }
-.panel-body {
-	padding: 15px;
+
+article > ol > li > a:visited {
+	color: #AAA;
+}
+
+footer {
+	text-align: center;
+	font-size: 12px;
+}
+
+.center {
+	text-align: center;
 }
 `
 
@@ -78,30 +83,38 @@ const HTML_BODY = `
 	</head>
 
 	<body>
-		<div id="content">
-			<div id="date_nav">
-				<a class="btn" href="{{date_link 24 .Date}}">&lt;</a>
-				<a class="btn" href="index.html">Latest</a>
-				<a class="btn" href="{{date_link -24 .Date}}">&gt;</a>
-			</div>
-			{{ range .Feeds }}
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<a href="{{.Url}}" rel="nofollow">{{.Title}}</a>
-					</div>
-					<div class="panel-body">
-						<ol>{{ range .Items }}
-							<li class="item"><a href="{{.Url}}" rel="nofollow" class="item">
-								{{.Title}}
-							</a></li>
-						{{ end }}</ol>
-					</div>
-				</div>
-			{{ end }}
-		<p class="center">
+		<header>
+			<nav>
+				<a href="{{date_link 24 .Date}}">&lt;</a>
+				<a href="index.html">Latest</a>
+				<a href="{{date_link -24 .Date}}">&gt;</a>
+			</nav>
+		</header>
+
+		<section id="content">
+			{{range .Feeds}}
+			<article>
+				<h1>
+					<a href="{{.Url}}" rel="nofollow">{{.Title}}</a>
+				</h1>
+				<ol>
+					{{range .Items}}
+					<li>
+						<a href="{{.Url}}" rel="nofollow">
+							{{.Title}}
+						</a>
+					</li>
+					{{end}}
+				</ol>
+			</article>
+			{{else}}
+			<p class="center">Sorry, no news for today!</p>
+			{{end}}
+		</section>
+
+		<footer>
 			Generated with Feedloggr2
-		</p>
-		</div>
+		</footer>
 	</body>
 </html>
 `
