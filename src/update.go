@@ -19,21 +19,17 @@ func UpdateFeeds(c *Config) error {
 		return e
 	}
 
-	d := NewDownloader("feedloggr2/" + VERSION)
-
 	u := &UpdateInstance{
-		Config:     c,
-		DB:         db,
-		Downloader: d,
+		Config: c,
+		DB:     db,
 	}
 
 	return u.run()
 }
 
 type UpdateInstance struct {
-	Config     *Config
-	DB         *DB
-	Downloader *FeedDownloader
+	Config *Config
+	DB     *DB
 }
 
 func (u *UpdateInstance) log(s string, args ...interface{}) {
@@ -55,7 +51,7 @@ func (u *UpdateInstance) download_feeds() {
 	u.log("Downloading feeds...")
 	var all_items []*FeedItem
 	for _, f := range u.Config.Feeds {
-		items, e := u.Downloader.DownloadFeed(f.Url)
+		items, e := parse_feed(f.Url)
 		if e != nil {
 			fmt.Println(e) // TODO
 			continue

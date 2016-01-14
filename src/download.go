@@ -1,69 +1,134 @@
 package feedloggr2
 
 import (
+	"encoding/xml"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
 
-	rss "github.com/jteeuwen/go-pkg-rss"
-	"github.com/jteeuwen/go-pkg-xmlx"
+	"github.com/lmas/go-pkg-xmlx"
 )
 
-type FeedDownloader struct {
-	rss   *rss.Feed
-	items []*FeedItem
-	fetch func(string, xmlx.CharsetFunc) error
-}
+const USER_AGENT = "feedloggr2/" + VERSION
 
-func NewDownloader(user_agent string) *FeedDownloader {
-	// Work around the funky model of go-pkg-rss and make a simpler interface.
-	f := &FeedDownloader{}
-	f.rss = rss.NewWithHandlers(0, false, f, f)
-	f.rss.SetUserAgent(user_agent)
-	f.fetch = f.rss.Fetch
-	return f
-}
-
-// Dummy "download" func for testing purposes
-// TODO: Move to test file?
-func (f *FeedDownloader) dummy_fetch(uri string, charset xmlx.CharsetFunc) error {
-	f.rss.Url = uri
-	items := []*rss.Item{
-		&rss.Item{
-			Title: "1st item",
-			Links: []*rss.Link{&rss.Link{Href: "http://some.link/"}},
-		},
-		&rss.Item{
-			Title: "2st item",
-			Links: []*rss.Link{&rss.Link{Href: "http://some.link2/"}},
-		},
-	}
-	f.ProcessItems(nil, nil, items)
-	return nil
-}
-
-func (f *FeedDownloader) Clear() {
-	f.items = nil
-}
-
-func (f *FeedDownloader) DownloadFeed(url string) ([]*FeedItem, error) {
-	defer f.Clear()
-	e := f.fetch(url, nil)
+func parse_feed(url string) ([]*FeedItem, error) {
+	data, e := download_feed(url)
 	if e != nil {
-		return nil, fmt.Errorf("Error connecting to %s: %s\n", url, e)
+		return nil, e
 	}
-	return f.items, nil
+
+	doc := xmlx.New()
+	e = doc.LoadString(data, nil)
+	if e != nil {
+		return nil, e
+	}
+
+	var items []*FeedItem
+	// TODO: need to come up with a better way to determine the feed type.
+	if node := doc.SelectNode("http://www.w3.org/2005/Atom", "feed"); node != nil {
+		items, e = parse_atom(url, data)
+		if e != nil {
+			return nil, e
+		}
+	} else if node := doc.SelectNode("", "rss"); node != nil {
+		// TODO: sometimes the rss tag is not set, but instead some RDF tag?
+		items, e = parse_rss(url, data)
+		if e != nil {
+			return nil, e
+		}
+	} else {
+		return nil, fmt.Errorf("Can't parse feed of unknown type")
+	}
+	return items, nil
 }
 
-// Dummy func so go-pkg-rss will run.
-func (f *FeedDownloader) ProcessChannels(feed *rss.Feed, channels []*rss.Channel) {
+func download_feed(url string) (string, error) {
+	req, e := http.NewRequest("GET", url, nil)
+	if e != nil {
+		return "", e
+	}
+
+	req.Header.Set("User-Agent", USER_AGENT)
+	client := http.DefaultClient
+	res, e := client.Do(req)
+	if e != nil {
+		return "", e
+	}
+
+	defer res.Body.Close()
+	data, e := ioutil.ReadAll(res.Body)
+	if e != nil {
+		return "", e
+	}
+
+	return string(data), nil
 }
 
-func (f *FeedDownloader) ProcessItems(feed *rss.Feed, ch *rss.Channel, items []*rss.Item) {
-	for _, it := range items {
-		f.items = append(f.items, &FeedItem{
-			Title: it.Title,
-			Url:   it.Links[0].Href,
+type AtomFeed struct {
+	Items []*AtomItem `xml:"entry"`
+}
+
+type AtomItem struct {
+	Title string      `xml:"title"`
+	Links []*AtomLink `xml:"link"`
+}
+
+type AtomLink struct {
+	URL string `xml:"href,attr"`
+}
+
+func parse_atom(url, body string) ([]*FeedItem, error) {
+	f := AtomFeed{}
+	decoder := xml.NewDecoder(strings.NewReader(body))
+	e := decoder.Decode(&f)
+	if e != nil {
+		return nil, e
+	}
+
+	var items []*FeedItem
+	for _, i := range f.Items {
+		url := i.Links[0].URL
+		items = append(items, &FeedItem{
+			Title: i.Title,
+			Url:   url,
 			Date:  Now(),
-			Feed:  f.rss.Url,
+			Feed:  url,
 		})
 	}
+	return items, nil
+}
+
+type RSSFeed struct {
+	Channel RSSChannel `xml:"channel"`
+}
+
+type RSSChannel struct {
+	Items []*RSSItem `xml:"item"`
+}
+
+type RSSItem struct {
+	Title string `xml:"title"`
+	URL   string `xml:"link"`
+}
+
+func parse_rss(url, body string) ([]*FeedItem, error) {
+	f := RSSFeed{}
+	decoder := xml.NewDecoder(strings.NewReader(body))
+	e := decoder.Decode(&f)
+	if e != nil {
+		return nil, e
+	}
+
+	var items []*FeedItem
+	for _, i := range f.Channel.Items {
+		items = append(items, &FeedItem{
+			Title: i.Title,
+			Url:   i.URL,
+			Date:  Now(),
+			Feed:  url,
+		})
+	}
+
+	return items, nil
 }
