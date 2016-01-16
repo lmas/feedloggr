@@ -8,8 +8,12 @@ web pages to browse the news in.
 Installation
 ================================================================================
 
+TODO
+
 Usage
 ================================================================================
+
+TODO
 
 License
 ================================================================================
@@ -24,3 +28,10 @@ README:
 
 Tests:
 - Must have unit tests. Need to mock the feed downloading.
+
+Main:
+- General clean up.
+- Add flags for verbose mode and file paths for db, config, output dir.
+- Add generate config action.
+- Add test config action.
+- Add run generator action.
