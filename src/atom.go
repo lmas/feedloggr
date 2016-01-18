@@ -6,7 +6,8 @@ import (
 )
 
 type AtomFeed struct {
-	Items []*AtomItem `xml:"entry"`
+	XMLName xml.Name    `xml:"http://www.w3.org/2005/Atom feed"`
+	Items   []*AtomItem `xml:"entry"`
 }
 
 type AtomItem struct {

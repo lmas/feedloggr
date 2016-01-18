@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/lmas/go-pkg-xmlx"
 )
 
 const USER_AGENT = "feedloggr2/" + VERSION
@@ -16,29 +14,21 @@ func parse_feed(url string) ([]*FeedItem, error) {
 		return nil, e
 	}
 
-	doc := xmlx.New()
-	e = doc.LoadString(data, nil)
-	if e != nil {
-		return nil, e
+	var items []*FeedItem
+	// First attempt to parse the feed as RSS
+	items, e = parse_rss(url, data)
+	if e == nil {
+		return items, nil
 	}
 
-	var items []*FeedItem
-	// TODO: need to come up with a better way to determine the feed type.
-	if node := doc.SelectNode("http://www.w3.org/2005/Atom", "feed"); node != nil {
-		items, e = parse_atom(url, data)
-		if e != nil {
-			return nil, e
-		}
-	} else if node := doc.SelectNode("", "rss"); node != nil {
-		// TODO: sometimes the rss tag is not set, but instead some RDF tag?
-		items, e = parse_rss(url, data)
-		if e != nil {
-			return nil, e
-		}
-	} else {
-		return nil, fmt.Errorf("Can't parse feed of unknown type")
+	// If that fails try to parse it as Atom
+	items, e = parse_atom(url, data)
+	if e == nil {
+		return items, nil
 	}
-	return items, nil
+
+	// Or give up
+	return nil, fmt.Errorf("Can't parse feed: %v", e)
 }
 
 func download_feed(url string) (string, error) {
