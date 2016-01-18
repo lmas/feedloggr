@@ -48,8 +48,14 @@ func (u *UpdateInstance) log(s string, args ...interface{}) {
 func (u *UpdateInstance) run() error {
 	u.download_feeds()
 	feeds := u.get_feeds()
-	u.generate_page(feeds)
-	u.generate_style()
+	e := u.generate_page(feeds)
+	if e != nil {
+		return e
+	}
+	e = u.generate_style()
+	if e != nil {
+		return e
+	}
 	u.log("Done.")
 	return nil
 }
@@ -107,14 +113,14 @@ func (u *UpdateInstance) get_feeds() []*Feed {
 	return all_feeds
 }
 
-func (u *UpdateInstance) generate_page(feeds []*Feed) {
+func (u *UpdateInstance) generate_page(feeds []*Feed) error {
 	u.log("Generating page...")
 	funcmap := template.FuncMap{
 		"date_link": func(h int, t time.Time) string {
 			d := t.Add(time.Hour * time.Duration(h)).Format("2006-01-02")
 			return fmt.Sprintf("%s.html", d)
 		},
-		"format": func(t time.Time) string { // TODO: rename "format"
+		"pretty_date": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},
 	}
@@ -132,11 +138,11 @@ func (u *UpdateInstance) generate_page(feeds []*Feed) {
 	f, e := os.Create(path)
 	defer f.Close()
 	if e != nil {
-		panic(e) // TODO
+		return e
 	}
 	e = t.Execute(f, s)
 	if e != nil {
-		panic(e) // TODO
+		return e
 	}
 
 	u.log("Updating symlink...")
@@ -147,16 +153,18 @@ func (u *UpdateInstance) generate_page(feeds []*Feed) {
 		// Ignore any "no such file" errors
 		// It works correctly, but "|| perr.Err == "is logically wrong. Bug?
 		if ok == false || perr.Err == fmt.Errorf("no such file or directory") {
-			panic(e) // TODO
+			return e
 		}
 	}
 	e = os.Symlink(file, path)
 	if e != nil {
-		panic(e) // TODO
+		return e
 	}
+
+	return nil
 }
 
-func (u *UpdateInstance) generate_style() {
+func (u *UpdateInstance) generate_style() error {
 	path := filepath.Join(u.Config.OutputPath, "style.css")
 	// With these flags we avoid overwriting an existing file
 	f, e := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
@@ -165,7 +173,9 @@ func (u *UpdateInstance) generate_style() {
 		u.log("Generating style...")
 		_, e = f.WriteString(CSS_BODY)
 		if e != nil {
-			panic(e) // TODO
+			return e
 		}
 	}
+
+	return nil
 }

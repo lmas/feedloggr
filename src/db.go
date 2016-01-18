@@ -18,7 +18,6 @@ type DB struct {
 }
 
 func OpenSqliteDB(args ...interface{}) (*DB, error) {
-	// TODO: get rid of gorm
 	db, e := gorm.Open("sqlite3", args...)
 	if e != nil {
 		return nil, e
@@ -40,7 +39,6 @@ func (db *DB) SaveItems(items []*FeedItem) {
 
 func (db *DB) GetItems(feed_url string) []*FeedItem {
 	var items []*FeedItem
-	// TODO: fix the feed url thing
 	db.Order("title, date desc").Where(
 		"feed = ? AND date(date) = date(?)", feed_url, Now(),
 	).Find(&items)

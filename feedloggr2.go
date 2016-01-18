@@ -1,6 +1,10 @@
 package main
 
-import "github.com/lmas/feedloggr2/src"
+import (
+	"log"
+
+	"github.com/lmas/feedloggr2/src"
+)
 
 func main() {
 	// TODO: make example config
@@ -19,12 +23,12 @@ func main() {
 	// Load config
 	config, e := feedloggr2.LoadConfig("./tmp/config.json")
 	if e != nil {
-		panic(e) // TODO
+		log.Printf("Error while parsing config: %v\n", e)
 	}
 
 	// Update
 	e = feedloggr2.UpdateFeeds(config)
 	if e != nil {
-		panic(e) // TODO
+		log.Printf("Error while updating feeds: %v\n", e)
 	}
 }

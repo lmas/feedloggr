@@ -77,7 +77,7 @@ const HTML_BODY = `
 	<head>
 		<meta charset="utf-8">
 		<title>
-			{{format .Date}} | News
+			{{pretty_date .Date}} | News
 		</title>
 		<link href="/style.css" rel="stylesheet" type="text/css">
 	</head>
