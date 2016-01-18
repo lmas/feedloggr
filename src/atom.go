@@ -31,7 +31,7 @@ func parse_atom(url, body string) ([]*FeedItem, error) {
 		url := i.Links[0].URL
 		items = append(items, &FeedItem{
 			Title: i.Title,
-			Url:   url,
+			URL:   url,
 			Date:  Now(),
 			Feed:  url,
 		})

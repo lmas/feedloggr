@@ -30,7 +30,7 @@ func parse_rss(url, body string) ([]*FeedItem, error) {
 	for _, i := range f.Channel.Items {
 		items = append(items, &FeedItem{
 			Title: i.Title,
-			Url:   i.URL,
+			URL:   i.URL,
 			Date:  Now(),
 			Feed:  url,
 		})

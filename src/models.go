@@ -4,7 +4,7 @@ import "time"
 
 type Feed struct {
 	Title string
-	Url   string
+	URL   string
 	Items []*FeedItem
 	Error error
 }
@@ -27,7 +27,7 @@ func (fs FeedSlice) Less(i, j int) bool {
 type FeedItem struct {
 	ID    int
 	Title string `sql:"type:varchar(100)"`
-	Url   string `sql:"type:varchar(255);unique"`
+	URL   string `sql:"type:varchar(255);unique"`
 	Date  time.Time
 	Feed  string `sql:"type:varchar(64)"`
 }

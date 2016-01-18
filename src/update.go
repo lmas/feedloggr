@@ -58,7 +58,7 @@ func (u *UpdateInstance) download_feeds() {
 	u.log("Downloading feeds...")
 	var all_items []*FeedItem
 	for _, f := range u.Config.Feeds {
-		items, e := parse_feed(f.Url)
+		items, e := parse_feed(f.URL)
 		if e != nil {
 			u.add_bad_feed(f, e)
 			continue
@@ -84,20 +84,20 @@ func (u *UpdateInstance) get_feeds() []*Feed {
 		if e, ok := u.bad_feeds[f]; ok == true {
 			all_feeds = append(all_feeds, &Feed{
 				Title: f.Title,
-				Url:   f.Url,
+				URL:   f.URL,
 				Error: e,
 			})
 			continue
 		}
 
-		items := u.DB.GetItems(f.Url)
+		items := u.DB.GetItems(f.URL)
 		if len(items) < 1 {
 			continue
 		}
 
 		all_feeds = append(all_feeds, &Feed{
 			Title: f.Title,
-			Url:   f.Url,
+			URL:   f.URL,
 			Items: items,
 		})
 

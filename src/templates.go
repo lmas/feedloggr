@@ -95,7 +95,7 @@ const HTML_BODY = `
 			{{range .Feeds}}
 			<article>
 				<h1>
-					<a href="{{.Url}}" rel="nofollow">{{.Title}}</a>
+					<a href="{{.URL}}" rel="nofollow">{{.Title}}</a>
 				</h1>
 				{{if .Error}}
 				<p>Error while updating feed:<br />{{.Error}}</p>
@@ -103,7 +103,7 @@ const HTML_BODY = `
 				<ol>
 					{{range .Items}}
 					<li>
-						<a href="{{.Url}}" rel="nofollow">
+						<a href="{{.URL}}" rel="nofollow">
 							{{.Title}}
 						</a>
 					</li>

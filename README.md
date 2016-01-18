@@ -35,3 +35,6 @@ Main:
 - Add generate config action.
 - Add test config action.
 - Add run generator action.
+
+Config:
+- Handle duplicate feeds.

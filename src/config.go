@@ -7,14 +7,14 @@ import (
 
 type FeedConfig struct {
 	Title string
-	Url   string
+	URL   string
 }
 
 type Config struct {
 	Verbose    bool
 	Database   string
 	OutputPath string
-	Feeds      []FeedConfig
+	Feeds      []*FeedConfig
 }
 
 func LoadConfig(path string) (*Config, error) {
