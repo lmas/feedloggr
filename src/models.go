@@ -23,7 +23,6 @@ func (fs FeedSlice) Less(i, j int) bool {
 	return fs[i].Title < fs[j].Title
 }
 
-// TODO: make indexes
 type FeedItem struct {
 	ID    int
 	Title string `sql:"type:varchar(100)"`

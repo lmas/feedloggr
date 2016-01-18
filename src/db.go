@@ -23,6 +23,7 @@ func OpenSqliteDB(args ...interface{}) (*DB, error) {
 		return nil, e
 	}
 	db.AutoMigrate(&FeedItem{})
+	db.Model(&FeedItem{}).AddIndex("idx_feed_item", "feed", "date")
 	return &DB{&db}, nil
 }
 
