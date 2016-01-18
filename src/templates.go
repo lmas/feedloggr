@@ -49,7 +49,7 @@ article > h1 {
 	text-align: center;
 }
 
-article > ol {
+article > ol, p {
 	margin: 15px;
 }
 
