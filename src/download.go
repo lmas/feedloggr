@@ -31,24 +31,24 @@ func parse_feed(url string) ([]*FeedItem, error) {
 	return nil, fmt.Errorf("Can't parse feed: %v", e)
 }
 
-func download_feed(url string) (string, error) {
+func download_feed(url string) ([]byte, error) {
 	req, e := http.NewRequest("GET", url, nil)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
 
 	req.Header.Set("User-Agent", USER_AGENT)
 	client := http.DefaultClient
 	res, e := client.Do(req)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
 
 	defer res.Body.Close()
 	data, e := ioutil.ReadAll(res.Body)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
 
-	return string(data), nil
+	return data, nil
 }

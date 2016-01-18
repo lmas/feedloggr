@@ -1,9 +1,6 @@
 package feedloggr2
 
-import (
-	"encoding/xml"
-	"strings"
-)
+import "encoding/xml"
 
 type RSSFeed struct {
 	XMLName xml.Name   `xml:"rss"`
@@ -19,10 +16,9 @@ type RSSItem struct {
 	URL   string `xml:"link"`
 }
 
-func parse_rss(url, body string) ([]*FeedItem, error) {
+func parse_rss(url string, body []byte) ([]*FeedItem, error) {
 	f := RSSFeed{}
-	decoder := xml.NewDecoder(strings.NewReader(body))
-	e := decoder.Decode(&f)
+	e := xml.Unmarshal(body, &f)
 	if e != nil {
 		return nil, e
 	}

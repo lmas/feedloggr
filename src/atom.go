@@ -1,9 +1,6 @@
 package feedloggr2
 
-import (
-	"encoding/xml"
-	"strings"
-)
+import "encoding/xml"
 
 type AtomFeed struct {
 	XMLName xml.Name    `xml:"http://www.w3.org/2005/Atom feed"`
@@ -19,10 +16,9 @@ type AtomLink struct {
 	URL string `xml:"href,attr"`
 }
 
-func parse_atom(url, body string) ([]*FeedItem, error) {
+func parse_atom(url string, body []byte) ([]*FeedItem, error) {
 	f := AtomFeed{}
-	decoder := xml.NewDecoder(strings.NewReader(body))
-	e := decoder.Decode(&f)
+	e := xml.Unmarshal(body, &f)
 	if e != nil {
 		return nil, e
 	}
