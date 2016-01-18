@@ -20,8 +20,9 @@ func UpdateFeeds(c *Config) error {
 	}
 
 	u := &UpdateInstance{
-		Config: c,
-		DB:     db,
+		Config:    c,
+		DB:        db,
+		bad_feeds: make(map[*FeedConfig]error),
 	}
 
 	return u.run()
@@ -30,6 +31,12 @@ func UpdateFeeds(c *Config) error {
 type UpdateInstance struct {
 	Config *Config
 	DB     *DB
+
+	bad_feeds map[*FeedConfig]error
+}
+
+func (u *UpdateInstance) add_bad_feed(f *FeedConfig, e error) {
+	u.bad_feeds[f] = e
 }
 
 func (u *UpdateInstance) log(s string, args ...interface{}) {
@@ -53,7 +60,7 @@ func (u *UpdateInstance) download_feeds() {
 	for _, f := range u.Config.Feeds {
 		items, e := parse_feed(f.Url)
 		if e != nil {
-			fmt.Println(e) // TODO
+			u.add_bad_feed(f, e)
 			continue
 		}
 
@@ -74,6 +81,15 @@ func (u *UpdateInstance) get_feeds() []*Feed {
 	u.log("Getting today's news...")
 	var all_feeds FeedSlice
 	for _, f := range u.Config.Feeds {
+		if e, ok := u.bad_feeds[f]; ok == true {
+			all_feeds = append(all_feeds, &Feed{
+				Title: f.Title,
+				Url:   f.Url,
+				Error: e,
+			})
+			continue
+		}
+
 		items := u.DB.GetItems(f.Url)
 		if len(items) < 1 {
 			continue

@@ -6,6 +6,7 @@ type Feed struct {
 	Title string
 	Url   string
 	Items []*FeedItem
+	Error error
 }
 
 type FeedSlice []*Feed

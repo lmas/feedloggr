@@ -97,6 +97,9 @@ const HTML_BODY = `
 				<h1>
 					<a href="{{.Url}}" rel="nofollow">{{.Title}}</a>
 				</h1>
+				{{if .Error}}
+				<p>Error while updating feed:<br />{{.Error}}</p>
+				{{else}}
 				<ol>
 					{{range .Items}}
 					<li>
@@ -106,6 +109,7 @@ const HTML_BODY = `
 					</li>
 					{{end}}
 				</ol>
+				{{end}}
 			</article>
 			{{else}}
 			<p class="center">Sorry, no news for today!</p>
