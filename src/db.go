@@ -2,16 +2,8 @@ package feedloggr2
 
 import (
 	"github.com/jinzhu/gorm"
-	rss "github.com/jteeuwen/go-pkg-rss"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type Datastore interface {
-	GetItems(feed_url string) ([]*FeedItem, error)
-
-	ProcessChannels(feed *rss.Feed, channels []*rss.Channel)
-	ProcessItems(feed *rss.Feed, ch *rss.Channel, items []*rss.Item)
-}
 
 type DB struct {
 	*gorm.DB
