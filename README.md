@@ -29,12 +29,8 @@ README:
 Tests:
 - Must have unit tests. Need to mock the feed downloading.
 
-Main:
-- General clean up.
-- Add flags for verbose mode and file paths for db, config, output dir.
-- Add generate config action.
-- Add test config action.
-- Add run generator action.
+Update:
+- Set a max on the amount of items gotten.
 
 Config:
 - Handle duplicate feeds.
