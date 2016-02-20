@@ -15,6 +15,10 @@ a, a:hover, a:visited {
 	color: #444;
 }
 
+a:hover {
+	color: #000;
+}
+
 nav {
 	text-align: center;
 	margin-bottom: 20px;
@@ -51,10 +55,6 @@ article > h1 {
 
 article > ol, p {
 	margin: 15px;
-}
-
-article > ol > li > a:hover {
-	color: #000;
 }
 
 article > ol > li > a:visited {
