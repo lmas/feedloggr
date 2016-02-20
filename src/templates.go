@@ -79,7 +79,7 @@ const HTML_BODY = `
 		<title>
 			{{pretty_date .Date}} | News
 		</title>
-		<link href="/style.css" rel="stylesheet" type="text/css">
+		<link href="./style.css" rel="stylesheet" type="text/css">
 	</head>
 
 	<body>
@@ -117,7 +117,7 @@ const HTML_BODY = `
 		</section>
 
 		<footer>
-			Generated with Feedloggr2
+			Generated with <a href="https://github.com/lmas/feedloggr2">Feedloggr2</a>
 		</footer>
 	</body>
 </html>

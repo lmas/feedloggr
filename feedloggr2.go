@@ -77,5 +77,6 @@ func run(c *cli.Context) {
 	e = feedloggr2.UpdateFeeds(config)
 	if e != nil {
 		fmt.Println(e)
+		os.Exit(1)
 	}
 }
