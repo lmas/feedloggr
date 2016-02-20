@@ -17,6 +17,19 @@ type Config struct {
 	Feeds      []*FeedConfig
 }
 
+func NewConfig() *Config {
+	c := &Config{
+		Verbose:    true,
+		Database:   ".feedloggr2.db",
+		OutputPath: "feeds",
+		Feeds: []*FeedConfig{
+			&FeedConfig{"Title of feed", "https://example.com/rss"},
+		},
+	}
+
+	return c
+}
+
 func LoadConfig(path string) (*Config, error) {
 	data, e := ioutil.ReadFile(path)
 	if e != nil {
