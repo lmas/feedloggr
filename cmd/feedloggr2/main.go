@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lmas/feedloggr2/src"
+	"github.com/lmas/feedloggr2"
 )
 
 var (
