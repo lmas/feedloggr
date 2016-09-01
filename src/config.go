@@ -1,8 +1,9 @@
 package feedloggr2
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"bytes"
+
+	"github.com/BurntSushi/toml"
 )
 
 type FeedConfig struct {
@@ -17,13 +18,22 @@ type Config struct {
 	Feeds      []*FeedConfig
 }
 
+func (c *Config) String() string {
+	var b bytes.Buffer
+	err := toml.NewEncoder(&b).Encode(c)
+	if err != nil {
+		return err.Error()
+	}
+	return b.String()
+}
+
 func NewConfig() *Config {
 	c := &Config{
 		Verbose:    true,
 		Database:   ".feedloggr2.db",
-		OutputPath: "feeds",
+		OutputPath: "./feeds",
 		Feeds: []*FeedConfig{
-			&FeedConfig{"Title of feed", "https://example.com/rss"},
+			&FeedConfig{"Example", "https://example.com/rss"},
 		},
 	}
 
@@ -31,27 +41,7 @@ func NewConfig() *Config {
 }
 
 func LoadConfig(path string) (*Config, error) {
-	data, e := ioutil.ReadFile(path)
-	if e != nil {
-		return nil, e
-	}
 	c := &Config{}
-	e = json.Unmarshal(data, &c)
-	if e != nil {
-		return nil, e
-	}
-	return c, nil
-}
-
-func SaveConfig(path string, c *Config) error {
-	b, e := json.MarshalIndent(c, "", "    ")
-	if e != nil {
-		return e
-	}
-
-	e = ioutil.WriteFile(path, b, 0644)
-	if e != nil {
-		return e
-	}
-	return nil
+	_, err := toml.DecodeFile(path, &c)
+	return c, err
 }

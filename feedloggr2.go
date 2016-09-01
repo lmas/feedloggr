@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -48,19 +46,16 @@ func main() {
 
 func example_config(c *cli.Context) {
 	conf := feedloggr2.NewConfig()
-	pretty, e := json.MarshalIndent(conf, "", "    ")
-	if e != nil {
-		log.Fatal(e)
-	}
-	fmt.Println(string(pretty))
+	fmt.Println(conf)
 }
 
 func test_config(c *cli.Context) {
-	_, e := feedloggr2.LoadConfig(c.GlobalString("config"))
+	conf, e := feedloggr2.LoadConfig(c.GlobalString("config"))
 	if e != nil {
 		fmt.Println(e)
 		os.Exit(1)
 	}
+	fmt.Println(conf)
 
 	if c.GlobalBool("verbose") {
 		fmt.Println("No errors while loading config file.")
