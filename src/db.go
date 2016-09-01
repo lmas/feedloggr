@@ -16,7 +16,7 @@ func OpenSqliteDB(args ...interface{}) (*DB, error) {
 	}
 	db.AutoMigrate(&FeedItem{})
 	db.Model(&FeedItem{}).AddIndex("idx_feed_item", "feed", "date")
-	return &DB{&db}, nil
+	return &DB{db}, nil
 }
 
 func (db *DB) SaveItems(items []*FeedItem) {
