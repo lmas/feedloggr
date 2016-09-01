@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	verbose = flag.Bool("v", false, "run in verbose mode")
-	config  = flag.String("c", ".feedloggr2.conf", "path to config file")
+	verbose = flag.Bool("verbose", false, "run in verbose mode")
+	config  = flag.String("config", ".feedloggr2.conf", "path to config file")
 
 	version = flag.Bool("version", false, "print version and exit")
 	example = flag.Bool("example", false, "print example config and exit")
-	test    = flag.Bool("test", false, "test a config file for errors")
+	test    = flag.Bool("test", false, "test config file and exit")
 )
 
 func main() {
