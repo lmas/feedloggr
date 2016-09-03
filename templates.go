@@ -1,6 +1,6 @@
 package feedloggr2
 
-const CSS_BODY = `
+const cssBody string = `
 body {
 	margin: 20px 40px;
 	line-height: 1.5;
@@ -71,7 +71,7 @@ footer {
 }
 `
 
-const HTML_BODY = `
+const htmlBody string = `
 <!doctype html>
 <html>
 	<head>

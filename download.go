@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const USER_AGENT = "feedloggr2/" + VERSION
+const userAgent string = "feedloggr2/" + VERSION
 
 func parse_feed(url string) ([]*FeedItem, error) {
 	data, e := download_feed(url)
@@ -37,7 +37,7 @@ func download_feed(url string) ([]byte, error) {
 		return nil, e
 	}
 
-	req.Header.Set("User-Agent", USER_AGENT)
+	req.Header.Set("User-Agent", userAgent)
 	client := http.DefaultClient
 	res, e := client.Do(req)
 	if e != nil {

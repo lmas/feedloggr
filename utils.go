@@ -2,11 +2,11 @@ package feedloggr2
 
 import "time"
 
-var Today time.Time
+var today time.Time
 
 func Now() time.Time {
-	if Today.IsZero() {
-		Today = time.Now()
+	if today.IsZero() {
+		today = time.Now()
 	}
-	return Today
+	return today
 }

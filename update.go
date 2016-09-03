@@ -11,7 +11,7 @@ import (
 )
 
 // TODO: change to env var/flag instead
-const TIME_BETWEEN_FEEDS = 2 // In seconds
+const timeBetweenFeeds int = 2 // In seconds
 
 func UpdateFeeds(c *Config) error {
 	db, e := OpenSqliteDB(c.Database)
@@ -76,7 +76,7 @@ func (u *UpdateInstance) download_feeds() {
 		all_items = append(all_items, items...)
 
 		// Slow down the amount of requests, to ensure we won't get spam blocked.
-		time.Sleep(time.Duration(TIME_BETWEEN_FEEDS) * time.Second)
+		time.Sleep(time.Duration(timeBetweenFeeds) * time.Second)
 	}
 	u.log("Saving feeds...")
 	u.DB.SaveItems(all_items)
@@ -125,7 +125,7 @@ func (u *UpdateInstance) generate_page(feeds []*Feed) error {
 		},
 	}
 
-	t := template.Must(template.New("Page").Funcs(funcmap).Parse(HTML_BODY))
+	t := template.Must(template.New("Page").Funcs(funcmap).Parse(htmlBody))
 	s := struct {
 		Date  time.Time
 		Feeds []*Feed
@@ -171,7 +171,7 @@ func (u *UpdateInstance) generate_style() error {
 	defer f.Close()
 	if e == nil {
 		u.log("Generating style...")
-		_, e = f.WriteString(CSS_BODY)
+		_, e = f.WriteString(cssBody)
 		if e != nil {
 			return e
 		}
