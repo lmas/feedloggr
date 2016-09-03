@@ -21,7 +21,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("feedloggr2 v%s\n", feedloggr2.VERSION)
+		fmt.Printf("feedloggr2 v%s\n", feedloggr2.Version)
 		fmt.Println("Collect news from RSS/Atom feeds and create static news pages in HTML.")
 		return
 	}

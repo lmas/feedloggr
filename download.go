@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const userAgent string = "feedloggr2/" + VERSION
+const userAgent string = "feedloggr2/" + Version
 
 func parse_feed(url string) ([]*FeedItem, error) {
 	data, e := download_feed(url)
