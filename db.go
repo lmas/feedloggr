@@ -1,39 +1,83 @@
 package feedloggr2
 
 import (
-	"github.com/jinzhu/gorm"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const sqlCreateTable string = `CREATE TABLE IF NOT EXISTS feed_items (
+	id INTEGER PRIMARY KEY,
+	title TEXT,
+	url TEXT NOT NULL UNIQUE,
+	date DATE,
+	feed TEXT
+);
+
+CREATE INDEX index_feed_item ON feed_items(feed, date);
+`
+
+const sqlInsertItem string = `INSERT OR IGNORE INTO feed_items VALUES(
+	NULL,
+	?,
+	?,
+	?,
+	?
+);
+`
+
+const sqlGetItems string = `SELECT * FROM feed_items
+	WHERE feed = ? AND date(date) = date(?)
+	ORDER BY title, date DESC;
+`
+
 type DB struct {
-	*gorm.DB
+	*sqlx.DB
 }
 
-func OpenSqliteDB(args ...interface{}) (*DB, error) {
-	db, e := gorm.Open("sqlite3", args...)
-	if e != nil {
-		return nil, e
+func OpenSqliteDB(path string) (*DB, error) {
+	conn, err := sqlx.Connect("sqlite3", path)
+	if err != nil {
+		return nil, err
 	}
-	db.AutoMigrate(&FeedItem{})
-	db.Model(&FeedItem{}).AddIndex("idx_feed_item", "feed", "date")
-	return &DB{db}, nil
+
+	_, err = conn.Exec(sqlCreateTable)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DB{conn}, nil
 }
 
 func (db *DB) SaveItems(items []*FeedItem) {
-	tx := db.Begin()
-	tx.LogMode(false) // Don't show errors when UNIQUE fails
-
-	for _, i := range items {
-		tx.Create(i)
+	tx, err := db.Begin()
+	// TODO: Handle this error better
+	if err != nil {
+		panic(err)
 	}
 
-	tx.Commit()
+	now := Now()
+
+	for _, i := range items {
+		_, err := tx.Exec(sqlInsertItem, i.Title, i.URL, now, i.Feed)
+		// TODO: handle this better
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	err = tx.Commit()
+	// TODO: Handle this error better
+	if err != nil {
+		panic(err)
+	}
 }
 
-func (db *DB) GetItems(feed_url string) []*FeedItem {
+func (db *DB) GetItems(feedUrl string) []*FeedItem {
 	var items []*FeedItem
-	db.Order("title, date desc").Where(
-		"feed = ? AND date(date) = date(?)", feed_url, Now(),
-	).Find(&items)
+	err := db.Select(&items, sqlGetItems, feedUrl, Now())
+	// TODO: Handle this error better
+	if err != nil {
+		panic(err)
+	}
 	return items
 }
