@@ -13,7 +13,7 @@ const sqlCreateTable string = `CREATE TABLE IF NOT EXISTS feed_items (
 	feed TEXT
 );
 
-CREATE INDEX index_feed_item ON feed_items(feed, date);
+CREATE INDEX IF NOT EXISTS index_feed_item ON feed_items(feed, date);
 `
 
 const sqlInsertItem string = `INSERT OR IGNORE INTO feed_items VALUES(
