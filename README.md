@@ -60,9 +60,15 @@ TODO
 Tests:
 - Must have unit tests. Need to mock the feed downloading.
 
+Download:
+- Make custom client and add a timeout.
+
 Update:
 - Set a max on the amount of items gotten.
+- Download feeds in parallel.
 
 Config:
 - Handle duplicate feeds.
-- Make sure the config contains proper values when running the test action.
+
+Docs:
+- Match new usage.

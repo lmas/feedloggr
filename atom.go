@@ -29,7 +29,7 @@ func parse_atom(url string, body []byte) ([]*FeedItem, error) {
 		items = append(items, &FeedItem{
 			Title: i.Title,
 			URL:   item_url,
-			Date:  Now(),
+			Date:  Now(), // TODO: remove this, added in db.go
 			Feed:  url,
 		})
 	}

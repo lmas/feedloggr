@@ -28,7 +28,7 @@ func parse_rss(url string, body []byte) ([]*FeedItem, error) {
 		items = append(items, &FeedItem{
 			Title: i.Title,
 			URL:   i.URL,
-			Date:  Now(),
+			Date:  Now(), // TODO: remove this, added in db.go
 			Feed:  url,
 		})
 	}
