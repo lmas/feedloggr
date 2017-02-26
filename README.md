@@ -8,7 +8,7 @@ web pages to browse the news in.
 Status
 --------------------------------------------------------------------------------
 
-The project is still in an alpha stage and under development.
+The project is now in beta stage and being actively used at https://lmas.se/news
 
 Installation
 --------------------------------------------------------------------------------
@@ -20,58 +20,57 @@ Usage
 
 For a list of available flags and commands:
 
-    feedloggr2 help
+    feedloggr2 -h
 
 You can create a new config file by running:
 
-    feedloggr2 config > .feedloggr2.conf
+    feedloggr2 -example > .feedloggr2.conf
 
 You should then edit `.feedloggr2.conf` and add in your RSS/Atom feeds.
-The format of the config is JSON.
+The format of the config is [TOML](https://github.com/toml-lang/toml).
 
 When you're done editting the config, you can test it and make sure there's no
 errors in it:
 
-    feedloggr2 test
+    feedloggr2 -test
 
 If no errors are shown, you're good to go.
 
 Now that you have a working config, it's time to start collect news from your
 feeds and create a new web page showing all the collected news:
 
-    feedloggr2 run
+    feedloggr2
 
 When it's done you should be able to browse the newly generated pages, found
-inside the output directory.
+inside the output directory that was specified in the config file.
 
 Configuration
 --------------------------------------------------------------------------------
 
-TODO: update when the config values are stable enough.
+    Verbose = true | false
+
+Show verbose logs while running. Default to false.
+
+    Database = "/path/to/file"
+
+Path to file where the sqlite3 database will be written.
+
+    OutputPath = "/path/to/dir"
+
+Path to directory where new pages will be stored in.
+
+    [[Feeds]]
+    Title = "Example"
+    URL = "https://example.com/rss"
+
+    [[Feeds]]
+    Title = "Example2"
+    URL = "https://somewhereelse.com/rss"
+
+List of RSS/Atom feeds, `feedloggr2` tries to download the feeds from the URLs.
 
 License
 --------------------------------------------------------------------------------
 
 MIT License, see LICENSE.
 
-TODO
---------------------------------------------------------------------------------
-
-BUGS:
-- can't generate pages if output dir doesn't exist!
-
-Tests:
-- Must have unit tests. Need to mock the feed downloading.
-
-Download:
-- Make custom client and add a timeout.
-
-Update:
-- Set a max on the amount of items gotten.
-- Download feeds in parallel.
-
-Config:
-- Handle duplicate feeds.
-
-Docs:
-- Match new usage.
