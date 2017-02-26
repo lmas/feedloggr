@@ -57,6 +57,9 @@ MIT License, see LICENSE.
 TODO
 --------------------------------------------------------------------------------
 
+BUGS:
+- can't generate pages if output dir doesn't exist!
+
 Tests:
 - Must have unit tests. Need to mock the feed downloading.
 
