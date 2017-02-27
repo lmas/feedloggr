@@ -49,7 +49,7 @@ func main() {
 		cfg.Verbose = true
 	}
 
-	app, err := feedloggr2.New(cfg)
+	app, err := feedloggr2.NewApp(cfg)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

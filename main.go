@@ -38,7 +38,7 @@ type App struct {
 	time       time.Time
 }
 
-func New(config *Config) (*App, error) {
+func NewApp(config *Config) (*App, error) {
 	db, err := OpenDB(config.Database)
 	if err != nil {
 		return nil, err
