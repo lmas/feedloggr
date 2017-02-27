@@ -82,12 +82,14 @@ func (app *App) Update() error {
 		if err != nil {
 			app.Log("Error: %s", err)
 		}
-		feeds = append(feeds, Feed{
-			Title: f.Title,
-			URL:   f.URL,
-			Items: items,
-			Error: err,
-		})
+		if len(items) > 0 || err != nil {
+			feeds = append(feeds, Feed{
+				Title: f.Title,
+				URL:   f.URL,
+				Items: items,
+				Error: err,
+			})
+		}
 		time.Sleep(sleep)
 	}
 	sort.Slice(feeds, func(i, j int) bool {
