@@ -11,10 +11,9 @@ import (
 )
 
 const (
-	UserAgent       string = "feedloggr2/0.2"
-	maxItems        int    = 50
-	downloadTimeout int    = 60 // seconds
-	feedTimeout     int    = 2  // seconds
+	UserAgent   string = "feedloggr2/0.2"
+	maxItems    int    = 50
+	feedTimeout int    = 2 // seconds
 )
 
 // Item is used by Config.Feeds and Feed.Items
@@ -47,7 +46,7 @@ func New(config *Config) (*App, error) {
 
 	parser := gofeed.NewParser()
 	client := &http.Client{
-		Timeout: time.Duration(downloadTimeout) * time.Second,
+		Timeout: time.Duration(config.DownloadTimeout) * time.Second,
 	}
 	tmpl, err := template.New("page").Parse(tmplPage)
 	if err != nil {
