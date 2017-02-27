@@ -8,7 +8,7 @@ import (
 const sqlCreateTable string = `CREATE TABLE IF NOT EXISTS feed_items (
 	id INTEGER PRIMARY KEY,
 	title TEXT,
-	url TEXT NOT NULL UNIQUE,
+	url TEXT UNIQUE,
 	date DATE,
 	feed TEXT
 );
@@ -55,6 +55,11 @@ func (db *DB) SaveItems(feedURL, date string, items []Item) error {
 	}
 
 	for _, i := range items {
+		if i.Title == "" || i.URL == "" {
+			// Yeah don't want empty/weird stuff getting stuck in the db
+			continue
+		}
+
 		_, err := tx.Exec(sqlInsertItem, i.Title, i.URL, date, feedURL)
 		if err != nil {
 			return err
