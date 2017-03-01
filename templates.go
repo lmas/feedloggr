@@ -73,9 +73,9 @@ const tmplPage string = `
 	<body>
 		<header>
 			<nav>
-				<a href="{{.PrevDate}}">&lt;</a>
+				<a href="{{.NextDate}}">&lt;</a>
 				<a href="index.html">Latest</a>
-				<a href="{{.NextDate}}">&gt;</a>
+				<a href="{{.PrevDate}}">&gt;</a>
 			</nav>
 		</header>
 		<section id="content">
