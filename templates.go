@@ -45,6 +45,11 @@ article > h1 {
 	font-weight: bold;
 	text-align: center;
 }
+article > h1.bad-ssl:after {
+    content:"No SSL";
+    float:right;
+    font-size:0.6em;
+}
 article > ol, p {
 	margin: 15px;
 }
@@ -81,7 +86,7 @@ const tmplPage string = `
 		<section id="content">
 			{{range .Feeds}}
 			<article>
-				<h1>
+				<h1{{if .BadSSL}} class="bad-ssl"{{end}}>
 					<a href="{{.URL}}" rel="nofollow">{{.Title}}</a>
 				</h1>
 				{{if .Error}}

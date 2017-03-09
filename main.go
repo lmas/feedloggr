@@ -23,10 +23,11 @@ type Item struct {
 }
 
 type Feed struct {
-	Title string
-	URL   string
-	Items []Item
-	Error error
+	Title  string
+	URL    string
+	Items  []Item
+	BadSSL bool
+	Error  error
 }
 
 type App struct {

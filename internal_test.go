@@ -88,7 +88,7 @@ func TestApp_updateSingleFeed(t *testing.T) {
 				tmpl:       tt.fields.tmpl,
 				time:       tt.fields.time,
 			}
-			got, err := app.updateSingleFeed(tt.args.feed)
+			got, _, err := app.updateSingleFeed(tt.args.feed)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("App.updateSingleFeed() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -130,7 +130,7 @@ func TestApp_downloadFeed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r, err := app.downloadFeed(tt.url)
+			r, _, err := app.downloadFeed(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("App.downloadFeed() error = %v, wantErr %v", err, tt.wantErr)
 				return

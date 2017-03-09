@@ -15,17 +15,18 @@ func (app *App) updateAllFeeds(feeds []Item) []Feed {
 	var updated []Feed
 	sleep := time.Duration(feedTimeout) * time.Second
 	for _, f := range feeds {
-		items, err := app.updateSingleFeed(f)
+		items, sslDowngrade, err := app.updateSingleFeed(f)
 		if err != nil {
 			app.Log("Error: %s", err)
 		}
 
 		if len(items) > 0 || err != nil {
 			updated = append(updated, Feed{
-				Title: f.Title,
-				URL:   f.URL,
-				Items: items,
-				Error: err,
+				Title:  f.Title,
+				URL:    f.URL,
+				Items:  items,
+				BadSSL: sslDowngrade,
+				Error:  err,
 			})
 		}
 		time.Sleep(sleep)
@@ -36,44 +37,52 @@ func (app *App) updateAllFeeds(feeds []Item) []Feed {
 	return updated
 }
 
-func (app *App) updateSingleFeed(feed Item) ([]Item, error) {
+func (app *App) updateSingleFeed(feed Item) ([]Item, bool, error) {
 	app.Log("Updating %s (%s)", feed.Title, feed.URL)
-	b, err := app.downloadFeed(feed.URL)
+	b, sslDowngrade, err := app.downloadFeed(feed.URL)
 	if err != nil {
-		return nil, err
+		return nil, sslDowngrade, err
 	}
 
 	items, err := app.parseFeed(b)
 	if err != nil {
-		return nil, err
+		return nil, sslDowngrade, err
 	}
 
 	d := date(app.time)
 	err = app.db.SaveItems(feed.URL, d, items)
 	if err != nil {
-		return nil, err
+		return nil, sslDowngrade, err
 	}
 
 	uniqe, err := app.db.GetItems(feed.URL, d)
 	if err != nil {
-		return nil, err
+		return nil, sslDowngrade, err
 	}
 
-	return uniqe, nil
+	return uniqe, sslDowngrade, nil
 }
 
-func (app *App) downloadFeed(url string) (io.ReadCloser, error) {
+func (app *App) downloadFeed(url string) (io.ReadCloser, bool, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	req.Header.Set("User-Agent", UserAgent)
+	req.URL.Scheme = "https"
 	res, err := app.httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		return res.Body, false, nil
 	}
-	return res.Body, nil
+
+	// Fallback to insecure connection with no ssl/tls
+	req.URL.Scheme = "http"
+	res, err = app.httpClient.Do(req)
+	if err != nil {
+		return nil, true, err
+	}
+	return res.Body, true, nil
 }
 
 func (app *App) parseFeed(b io.ReadCloser) ([]Item, error) {
