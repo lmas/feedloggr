@@ -17,7 +17,9 @@ func (app *App) updateAllFeeds(feeds []Item) []Feed {
 	sleep := time.Duration(feedTimeout) * time.Second
 	for _, f := range feeds {
 		// Try to enforce SSL
-		f.URL = strings.Replace(f.URL, "http://", "https://", -1)
+		if !strings.HasPrefix(f.URL, "https://") {
+			f.URL = "https://" + strings.TrimPrefix(f.URL, "http://")
+		}
 
 		items, sslDowngrade, err := app.updateSingleFeed(f)
 		if err != nil {
