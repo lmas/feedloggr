@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -15,9 +16,16 @@ func (app *App) updateAllFeeds(feeds []Item) []Feed {
 	var updated []Feed
 	sleep := time.Duration(feedTimeout) * time.Second
 	for _, f := range feeds {
+		// Try to enforce SSL
+		f.URL = strings.Replace(f.URL, "http://", "https://", -1)
+
 		items, sslDowngrade, err := app.updateSingleFeed(f)
 		if err != nil {
 			app.Log("Error: %s", err)
+		}
+		if sslDowngrade {
+			// Ops, no SSL here; redo
+			f.URL = strings.Replace(f.URL, "https://", "http://", -1)
 		}
 
 		if len(items) > 0 || err != nil {
@@ -70,7 +78,6 @@ func (app *App) downloadFeed(url string) (io.ReadCloser, bool, error) {
 	}
 
 	req.Header.Set("User-Agent", UserAgent)
-	req.URL.Scheme = "https"
 	res, err := app.httpClient.Do(req)
 	if err == nil {
 		return res.Body, false, nil
