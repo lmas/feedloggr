@@ -1,10 +1,9 @@
-package feedloggr2
+package feedloggr
 
 import (
 	"bytes"
-	"io"
+	"html/template"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,31 +11,66 @@ import (
 	"time"
 )
 
-func (app *App) updateAllFeeds(feeds []Item) []Feed {
-	var updated []Feed
-	sleep := time.Duration(feedTimeout) * time.Second
-	for _, f := range feeds {
-		// Try to enforce SSL
-		if !strings.HasPrefix(f.URL, "https://") {
-			f.URL = "https://" + strings.TrimPrefix(f.URL, "http://")
+const (
+	filterSize  uint = 1000000 // Should be enough for a couple of years
+	maxItems    int  = 50
+	feedTimeout int  = 2 // seconds
+)
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func date(t time.Time) string {
+	return t.Format("2006-01-02")
+}
+
+func (app *App) seenItem(url string) bool {
+	return app.filter.Lookup([]byte(url))
+}
+
+func (app *App) newItems(url string) ([]Item, error) {
+	feed, err := app.feedParser.ParseURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []Item
+	num := min(len(feed.Items), maxItems)
+	for _, i := range feed.Items[:num] {
+		if app.seenItem(i.Link) {
+			continue
 		}
 
-		items, sslDowngrade, err := app.updateSingleFeed(f)
+		items = append(items, Item{
+			Title: template.HTMLEscapeString(strings.TrimSpace(i.Title)),
+			URL:   i.Link,
+		})
+	}
+	return items, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+func (app *App) updateAllFeeds(feeds map[string]string) []Feed {
+	var updated []Feed
+	sleep := time.Duration(feedTimeout) * time.Second
+	for title, url := range feeds {
+		app.Log("Updating %s (%s)", title, url)
+		items, err := app.newItems(url)
 		if err != nil {
-			app.Log("Error: %s", err)
-		}
-		if sslDowngrade {
-			// Ops, no SSL here; redo
-			f.URL = strings.Replace(f.URL, "https://", "http://", -1)
+			app.Log("%s", err)
 		}
 
 		if len(items) > 0 || err != nil {
 			updated = append(updated, Feed{
-				Title:  f.Title,
-				URL:    f.URL,
-				Items:  items,
-				BadSSL: sslDowngrade,
-				Error:  err,
+				Title: title,
+				URL:   url,
+				Items: items,
+				Error: err,
 			})
 		}
 		time.Sleep(sleep)
@@ -47,82 +81,10 @@ func (app *App) updateAllFeeds(feeds []Item) []Feed {
 	return updated
 }
 
-func (app *App) updateSingleFeed(feed Item) ([]Item, bool, error) {
-	app.Log("Updating %s (%s)", feed.Title, feed.URL)
-	b, sslDowngrade, err := app.downloadFeed(feed.URL)
-	if err != nil {
-		return nil, sslDowngrade, err
-	}
-
-	items, err := app.parseFeed(b)
-	if err != nil {
-		return nil, sslDowngrade, err
-	}
-
-	d := date(app.time)
-	err = app.db.SaveItems(feed.URL, d, items)
-	if err != nil {
-		return nil, sslDowngrade, err
-	}
-
-	uniqe, err := app.db.GetItems(feed.URL, d)
-	if err != nil {
-		return nil, sslDowngrade, err
-	}
-
-	return uniqe, sslDowngrade, nil
-}
-
-func (app *App) downloadFeed(url string) (io.ReadCloser, bool, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, false, err
-	}
-
-	req.Header.Set("User-Agent", UserAgent)
-	res, err := app.httpClient.Do(req)
-	if err == nil {
-		return res.Body, false, nil
-	}
-
-	// Fallback to insecure connection with no ssl/tls
-	req.URL.Scheme = "http"
-	res, err = app.httpClient.Do(req)
-	if err != nil {
-		return nil, true, err
-	}
-	return res.Body, true, nil
-}
-
-func (app *App) parseFeed(b io.ReadCloser) ([]Item, error) {
-	defer b.Close()
-	feed, err := app.parser.Parse(b)
-	if err != nil {
-		return nil, err
-	}
-
-	var seen []string
-	var items []Item
-	num := min(len(feed.Items), maxItems)
-	for _, i := range feed.Items[:num] {
-		// Avoid items with duplicate names (/r/WorldNews ffs)
-		if inList(i.Title, seen) {
-			continue
-		}
-		seen = append(seen, i.Title)
-
-		items = append(items, Item{
-			Title: i.Title,
-			URL:   i.Link,
-		})
-	}
-	return items, nil
-}
-
 func (app *App) generatePage(feeds []Feed) ([]byte, error) {
 	app.Log("Generating page...")
-	buf := new(bytes.Buffer)
-	err := app.tmpl.Execute(buf, map[string]interface{}{
+	var buf bytes.Buffer
+	err := app.tmpl.Execute(&buf, map[string]interface{}{
 		"CurrentDate": date(app.time),
 		"PrevDate":    date(app.time.AddDate(0, 0, -1)),
 		"NextDate":    date(app.time.AddDate(0, 0, 1)),
@@ -134,7 +96,7 @@ func (app *App) generatePage(feeds []Feed) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (app *App) writePage(path string, b []byte) error {
+func (app *App) writePage(index, path string, b []byte) error {
 	app.Log("Writing page to %s...", path)
 	err := os.MkdirAll(filepath.Dir(path), 0744)
 	if err != nil {
@@ -146,7 +108,6 @@ func (app *App) writePage(path string, b []byte) error {
 		return err
 	}
 
-	index := filepath.Join(app.Config.OutputPath, "index.html")
 	err = os.Remove(index)
 	if err != nil {
 		// ignore error if the symlink doesn't exist already
@@ -156,14 +117,21 @@ func (app *App) writePage(path string, b []byte) error {
 	}
 
 	err = os.Symlink(filepath.Base(path), index)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-func (app *App) writeStyleFile() error {
-	path := filepath.Join(app.Config.OutputPath, "style.css")
+func (app *App) writeFilter(path string, feeds []Feed) error {
+	for _, f := range feeds {
+		for _, i := range f.Items {
+			app.filter.Insert([]byte(i.URL))
+		}
+	}
+
+	err := ioutil.WriteFile(path, app.filter.Encode(), 0644)
+	return err
+}
+
+func (app *App) writeStyleFile(path string) error {
 	// With these flags we try to avoid overwriting an existing file
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
@@ -176,8 +144,5 @@ func (app *App) writeStyleFile() error {
 	defer f.Close()
 	app.Log("Writing style file...")
 	_, err = f.WriteString(tmplCSS)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

@@ -1,4 +1,4 @@
-package feedloggr2
+package feedloggr
 
 const tmplCSS string = `
 body {
@@ -16,6 +16,7 @@ a, a:hover, a:visited {
 a:hover {
 	color: #000;
 }
+
 nav {
 	text-align: center;
 	margin-bottom: 20px;
@@ -30,13 +31,14 @@ nav > a:hover {
 	background-color: #E6E6E6;
 	border-color: #ADADAD;
 }
-article {
+
+section {
 	border: 1px solid #DDD;
 	background-color: #FFF;
 	border-radius: 3px;
 	margin-bottom: 20px;
 }
-article > h1 {
+section > h1 {
 	background-color: #EEE;
 	border-bottom: 1px solid #DDD;
 	padding: 10px 15px;
@@ -45,17 +47,13 @@ article > h1 {
 	font-weight: bold;
 	text-align: center;
 }
-article > h1.bad-ssl:after {
-    content:"No SSL";
-    float:right;
-    font-size:0.6em;
-}
-article > ol, p {
+section > ol, p {
 	margin: 15px;
 }
-article > ol > li > a:visited {
+section > ol > li > a:visited {
 	color: #AAA;
 }
+
 footer {
 	text-align: center;
 	font-size: 12px;
@@ -68,48 +66,34 @@ footer {
 const tmplPage string = `
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>
-			{{.CurrentDate}} | News
-		</title>
-		<link href="./style.css" rel="stylesheet" type="text/css">
-	</head>
-	<body>
-		<header>
-			<nav>
-				<a href="{{.NextDate}}">&lt;</a>
-				<a href="index.html">Latest</a>
-				<a href="{{.PrevDate}}">&gt;</a>
-			</nav>
-		</header>
-		<section id="content">
-			{{range .Feeds}}
-			<article>
-				<h1{{if .BadSSL}} class="bad-ssl"{{end}}>
-					<a href="{{.URL}}" rel="nofollow">{{.Title}}</a>
-				</h1>
-				{{if .Error}}
-				<p>Error while updating feed:<br />{{.Error}}</p>
-				{{else}}
-				<ol>
-					{{range .Items}}
-					<li>
-						<a href="{{.URL}}" rel="nofollow">
-							{{.Title}}
-						</a>
-					</li>
-					{{end}}
-				</ol>
-				{{end}}
-			</article>
-			{{else}}
-			<p class="center">Sorry, no news for today!</p>
-			{{end}}
-		</section>
-		<footer>
-			Generated with <a href="https://github.com/lmas/feedloggr2">Feedloggr2</a>
-		</footer>
-	</body>
+<head>
+	<meta charset="utf-8">
+	<title>{{.CurrentDate}} | Feedloggr</title>
+	<link href="./style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+	<nav>
+		<a href="{{.NextDate}}.html">&lt;</a>
+		<a href="index.html">Latest</a>
+		<a href="{{.PrevDate}}.html">&gt;</a>
+	</nav>
+	{{range .Feeds}}
+	<section>
+		<h1><a href="{{.URL}}" rel="nofollow">{{.Title}}</a></h1>
+		{{if .Error}}
+		<p>Error while updating feed:<br />{{.Error}}</p>
+		{{else}}
+		<ol>{{range .Items}}
+			<li><a href="{{.URL}}" rel="nofollow">{{.Title}}</a></li>
+		{{end}}</ol>
+		{{end}}
+	</section>
+	{{else}}
+	<p class="center">Sorry, no news for today!</p>
+	{{end}}
+	<footer>
+		Generated with <a href="https://github.com/lmas/feedloggr">Feedloggr</a>
+	</footer>
+</body>
 </html>
 `

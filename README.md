@@ -1,5 +1,5 @@
 
-feedloggr2
+feedloggr v3.0
 ================================================================================
 
 Collect news from your favorite RSS/Atom feeds and generate simple and static
@@ -13,33 +13,33 @@ The project is now in beta stage and being actively used at https://lmas.se/news
 Installation
 --------------------------------------------------------------------------------
 
-    go install github.com/lmas/feedloggr2
+    go install github.com/lmas/feedloggr
 
 Usage
 --------------------------------------------------------------------------------
 
 For a list of available flags and commands:
 
-    feedloggr2 -h
+    feedloggr -h
 
 You can create a new config file by running:
 
-    feedloggr2 -example > .feedloggr2.conf
+    feedloggr -example > .feedloggr.conf
 
-You should then edit `.feedloggr2.conf` and add in your RSS/Atom feeds.
+You should then edit `.feedloggr.conf` and add in your RSS/Atom feeds.
 The format of the config is [TOML](https://github.com/toml-lang/toml).
 
 When you're done editting the config, you can test it and make sure there's no
 errors in it:
 
-    feedloggr2 -test
+    feedloggr -test
 
 If no errors are shown, you're good to go.
 
 Now that you have a working config, it's time to start collect news from your
 feeds and create a new web page showing all the collected news:
 
-    feedloggr2
+    feedloggr
 
 When it's done you should be able to browse the newly generated pages, found
 inside the output directory that was specified in the config file.
@@ -51,23 +51,19 @@ Configuration
 
 Show verbose logs while running. Default to false.
 
-    Database = "/path/to/file"
-
-Path to file where the sqlite3 database will be written.
-
     OutputPath = "/path/to/dir"
 
 Path to directory where new pages will be stored in.
 
-    [[Feeds]]
-    Title = "Example"
-    URL = "https://example.com/rss"
+    Timeout = seconds
 
-    [[Feeds]]
-    Title = "Example2"
-    URL = "https://somewhereelse.com/rss"
+Read timeout when sending HTTP GET requests, when updating the feeds.
 
-List of RSS/Atom feeds, `feedloggr2` tries to download the feeds from the URLs.
+    [Feeds]
+    "Example" = "https://example.com/rss"
+    "Example2" = "https://somewhereelse.com/rss"
+
+List of RSS/Atom feeds, `feedloggr` tries to download the feeds from the URLs.
 
 License
 --------------------------------------------------------------------------------

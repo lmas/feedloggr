@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lmas/feedloggr2"
+	"github.com/lmas/feedloggr"
 )
 
 var (
 	verbose = flag.Bool("verbose", false, "run in verbose mode")
-	config  = flag.String("config", ".feedloggr2.conf", "path to config file")
+	config  = flag.String("config", ".feedloggr3.conf", "path to config file")
 
 	version = flag.Bool("version", false, "print version and exit")
 	example = flag.Bool("example", false, "print example config and exit")
@@ -21,18 +21,18 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println(feedloggr2.UserAgent)
-		fmt.Println("Collect news from RSS/Atom feeds and create static news pages in HTML.")
+		fmt.Println("Feedloggr 3.0")
+		fmt.Println("Aggregate news from RSS/Atom feeds and output static HTML pages.")
 		return
 	}
 
 	if *example {
-		cfg := feedloggr2.NewConfig()
+		cfg := feedloggr.NewConfig()
 		fmt.Println(cfg)
 		return // simple exit(0)
 	}
 
-	cfg, err := feedloggr2.LoadConfig(*config)
+	cfg, err := feedloggr.LoadConfig(*config)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -49,7 +49,7 @@ func main() {
 		cfg.Verbose = true
 	}
 
-	app, err := feedloggr2.NewApp(cfg)
+	app, err := feedloggr.New(cfg)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

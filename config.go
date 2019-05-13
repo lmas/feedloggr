@@ -1,4 +1,4 @@
-package feedloggr2
+package feedloggr
 
 import (
 	"bytes"
@@ -7,11 +7,10 @@ import (
 )
 
 type Config struct {
-	Verbose         bool
-	Database        string
-	OutputPath      string
-	DownloadTimeout int // In seconds
-	Feeds           []Item
+	Verbose    bool
+	OutputPath string
+	Timeout    int // In seconds
+	Feeds      map[string]string
 }
 
 func (c *Config) String() string {
@@ -25,12 +24,11 @@ func (c *Config) String() string {
 
 func NewConfig() *Config {
 	c := &Config{
-		Verbose:         true,
-		Database:        ".feedloggr2.db",
-		OutputPath:      "./feeds",
-		DownloadTimeout: 60,
-		Feeds: []Item{
-			Item{"Example", "https://example.com/rss"},
+		Verbose:    true,
+		OutputPath: "./feeds",
+		Timeout:    60,
+		Feeds: map[string]string{
+			"Example": "https://example.com/rss",
 		},
 	}
 	return c
