@@ -2,7 +2,6 @@ package feedloggr
 
 import (
 	"bytes"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,10 +45,13 @@ func (app *App) newItems(url string) ([]Item, error) {
 		}
 
 		items = append(items, Item{
-			Title: template.HTMLEscapeString(strings.TrimSpace(i.Title)),
+			Title: strings.TrimSpace(i.Title),
 			URL:   i.Link,
 		})
 	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Title < items[j].Title
+	})
 	return items, nil
 }
 
