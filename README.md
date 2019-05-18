@@ -24,9 +24,9 @@ For a list of available flags and commands:
 
 You can create a new config file by running:
 
-    feedloggr -example > .feedloggr.conf
+    feedloggr -example > .feedloggr3.conf
 
-You should then edit `.feedloggr.conf` and add in your RSS/Atom feeds.
+You should then edit `.feedloggr3.conf` and add in your RSS/Atom feeds.
 The format of the config is [TOML](https://github.com/toml-lang/toml).
 
 When you're done editting the config, you can test it and make sure there's no
