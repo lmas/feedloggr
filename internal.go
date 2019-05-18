@@ -8,12 +8,13 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	boom "github.com/tylertreat/BoomFilters"
 )
 
 const (
-	filterSize  uint = 1000000 // Should be enough for a couple of years
-	maxItems    int  = 50
-	feedTimeout int  = 2 // seconds
+	maxItems    int = 50
+	feedTimeout int = 2 // seconds
 )
 
 func min(a, b int) int {
@@ -27,8 +28,27 @@ func date(t time.Time) string {
 	return t.Format("2006-01-02")
 }
 
+func loadFilter(path string) (*boom.ScalableBloomFilter, error) {
+	filter := boom.NewDefaultScalableBloomFilter(0.01)
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return filter, nil
+		}
+		return nil, err
+	}
+
+	defer f.Close()
+	if _, err := filter.ReadFrom(f); err != nil {
+		return nil, err
+	}
+	return filter, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 func (app *App) seenItem(url string) bool {
-	return app.filter.Lookup([]byte(url))
+	return app.filter.TestAndAdd([]byte(url))
 }
 
 func (app *App) newItems(url string) ([]Item, error) {
@@ -122,14 +142,13 @@ func (app *App) writePage(index, path string, b []byte) error {
 	return err
 }
 
-func (app *App) writeFilter(path string, feeds []Feed) error {
-	for _, f := range feeds {
-		for _, i := range f.Items {
-			app.filter.Insert([]byte(i.URL))
-		}
+func (app *App) writeFilter(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
 	}
-
-	err := ioutil.WriteFile(path, app.filter.Encode(), 0644)
+	defer f.Close()
+	_, err = app.filter.WriteTo(f)
 	return err
 }
 

@@ -2,14 +2,13 @@ package feedloggr
 
 import (
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
 	"time"
 
 	"github.com/mmcdole/gofeed"
-	cuckoo "github.com/seiflotfy/cuckoofilter"
+	boom "github.com/tylertreat/BoomFilters"
 )
 
 type Item struct {
@@ -29,7 +28,7 @@ type App struct {
 
 	time       time.Time
 	tmpl       *template.Template
-	filter     *cuckoo.Filter
+	filter     *boom.ScalableBloomFilter
 	feedParser *gofeed.Parser
 }
 
@@ -58,23 +57,18 @@ func New(config *Config) (*App, error) {
 		Transport: &UserAgentTransport{http.DefaultTransport},
 	}
 
+	path := filepath.Join(config.OutputPath, ".filter.dat")
+	filter, err := loadFilter(path)
+	if err != nil {
+		return nil, err
+	}
+
 	app := &App{
 		Config:     config,
 		time:       time.Now(),
 		tmpl:       tmpl,
+		filter:     filter,
 		feedParser: feedParser,
-	}
-
-	path := filepath.Join(config.OutputPath, ".filter.dat")
-	b, err := ioutil.ReadFile(path)
-	if err == nil {
-		app.filter, err = cuckoo.Decode(b)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		app.Log("Error loading filter: %s", err)
-		app.filter = cuckoo.NewFilter(filterSize)
 	}
 	return app, nil
 }
@@ -99,7 +93,7 @@ func (app *App) Update() error {
 	}
 
 	path = filepath.Join(app.Config.OutputPath, ".filter.dat")
-	if err := app.writeFilter(path, feeds); err != nil {
+	if err := app.writeFilter(path); err != nil {
 		return err
 	}
 
