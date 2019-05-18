@@ -81,14 +81,14 @@ func (app *App) Log(msg string, args ...interface{}) {
 
 func (app *App) Update() error {
 	feeds := app.updateAllFeeds(app.Config.Feeds)
-	b, err := app.generatePage(feeds)
+	buf, err := app.generatePage(feeds)
 	if err != nil {
 		return err
 	}
 
 	index := filepath.Join(app.Config.OutputPath, "index.html")
 	path := filepath.Join(app.Config.OutputPath, date(app.time)+".html")
-	if err := app.writePage(index, path, b); err != nil {
+	if err := app.writePage(index, path, buf); err != nil {
 		return err
 	}
 

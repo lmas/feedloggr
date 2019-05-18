@@ -2,7 +2,6 @@ package feedloggr
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -103,7 +102,7 @@ func (app *App) updateAllFeeds(feeds map[string]string) []Feed {
 	return updated
 }
 
-func (app *App) generatePage(feeds []Feed) ([]byte, error) {
+func (app *App) generatePage(feeds []Feed) (*bytes.Buffer, error) {
 	app.Log("Generating page...")
 	var buf bytes.Buffer
 	err := app.tmpl.Execute(&buf, map[string]interface{}{
@@ -115,18 +114,22 @@ func (app *App) generatePage(feeds []Feed) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return &buf, nil
 }
 
-func (app *App) writePage(index, path string, b []byte) error {
+func (app *App) writePage(index, path string, buf *bytes.Buffer) error {
 	app.Log("Writing page to %s...", path)
 	err := os.MkdirAll(filepath.Dir(path), 0744)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, b, 0644)
+	f, err := os.Create(path)
 	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err := buf.WriteTo(f); err != nil {
 		return err
 	}
 
@@ -138,8 +141,7 @@ func (app *App) writePage(index, path string, b []byte) error {
 		}
 	}
 
-	err = os.Symlink(filepath.Base(path), index)
-	return err
+	return os.Symlink(filepath.Base(path), index)
 }
 
 func (app *App) writeFilter(path string) error {
