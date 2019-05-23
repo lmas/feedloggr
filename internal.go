@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	tdl "github.com/lmas/Damerau-Levenshtein"
 	boom "github.com/tylertreat/BoomFilters"
 )
 
@@ -15,13 +16,6 @@ const (
 	maxItems    int = 50
 	feedTimeout int = 2 // seconds
 )
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
 
 func date(t time.Time) string {
 	return t.Format("2006-01-02")
@@ -46,7 +40,17 @@ func loadFilter(path string) (*boom.ScalableBloomFilter, error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (app *App) seenItem(url string) bool {
+func seenTitle(title string, list []string) bool {
+	for _, s := range list {
+		score := tdl.Distance(title, s)
+		if score < 2 {
+			return true
+		}
+	}
+	return false
+}
+
+func (app *App) seenURL(url string) bool {
 	return app.filter.TestAndAdd([]byte(url))
 }
 
@@ -56,10 +60,20 @@ func (app *App) newItems(url string) ([]Item, error) {
 		return nil, err
 	}
 
+	var titles []string
 	var items []Item
-	num := min(len(feed.Items), maxItems)
-	for _, i := range feed.Items[:num] {
-		if app.seenItem(i.Link) {
+	max := len(feed.Items)
+	if max > maxItems {
+		max = maxItems
+	}
+
+	for _, i := range feed.Items[:max] {
+		if seenTitle(i.Title, titles) {
+			continue
+		}
+		titles = append(titles, i.Title)
+
+		if app.seenURL(i.Link) {
 			continue
 		}
 
