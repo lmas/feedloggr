@@ -2,58 +2,56 @@ package feedloggr
 
 const tmplCSS string = `
 body {
-	margin: 20px 40px;
+	margin: 30px 5%;
 	line-height: 1.5;
-	font-size: 16px;
+	font-size: 14px;
 	font-family: monospace;
 	background-color: #FFF;
 	color: #444;
 }
-a, a:hover, a:visited {
-	text-decoration:none;
+a, a:visited {
 	color: #444;
+	text-decoration:none;
 }
 a:hover {
 	color: #000;
+	text-decoration: underline;
 }
 
 nav {
 	text-align: center;
 	margin-bottom: 20px;
 }
-nav > a {
-	border: 1px solid #DDD;
-	border-radius: 3px;
-	padding: 6px 12px;
-	font-weight: bold;
-}
 nav > a:hover {
 	background-color: #E6E6E6;
 	border-color: #ADADAD;
 }
-
 section {
-	border: 1px solid #DDD;
 	background-color: #FFF;
-	border-radius: 3px;
 	margin-bottom: 20px;
 }
-section > h1 {
-	background-color: #EEE;
-	border-bottom: 1px solid #DDD;
-	padding: 10px 15px;
+section > h1, nav > a {
+	border: 1px solid #DDD;
+	border-radius: 3px;
+	padding: 10px;
 	margin: 0;
 	font-size: 16px;
 	font-weight: bold;
 	text-align: center;
 }
-section > ol, p {
-	margin: 15px;
+section > h1 {
+	background-color: #EEE;
 }
-section > ol > li > a:visited {
+section > ul, p {
+	padding: 0;
+	list-style: inside;
+}
+section > ul > li {
+        margin-bottom: 2px;
+}
+section > ul > li > a:visited {
 	color: #AAA;
 }
-
 footer {
 	text-align: center;
 	font-size: 12px;
@@ -68,6 +66,7 @@ const tmplPage string = `
 <html>
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
 	<title>{{.CurrentDate}} | Feedloggr</title>
 	<link href="./style.css" rel="stylesheet" type="text/css">
 </head>
@@ -83,9 +82,9 @@ const tmplPage string = `
 		{{if .Error}}
 		<p>Error while updating feed:<br />{{.Error}}</p>
 		{{else}}
-		<ol>{{range .Items}}
+		<ul>{{range .Items}}
 			<li><a href="{{.URL}}" rel="nofollow">{{.Title}}</a></li>
-		{{end}}</ol>
+		{{end}}</ul>
 		{{end}}
 	</section>
 	{{else}}
