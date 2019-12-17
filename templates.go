@@ -44,6 +44,7 @@ section > h1 {
 }
 section > ul, p {
 	padding: 0;
+	margin: 20px 0;
 	list-style: "-" outside;
 }
 section > ul > li {
