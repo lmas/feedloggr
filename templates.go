@@ -4,14 +4,14 @@ const tmplCSS string = `
 body {
 	margin: 30px 5%;
 	line-height: 1.5;
-	font-size: 14px;
+	font-size: 13px;
 	font-family: monospace;
 	background-color: #FFF;
 	color: #444;
 }
 a, a:visited {
 	color: #444;
-	text-decoration:none;
+	text-decoration: none;
 }
 a:hover {
 	color: #000;
@@ -44,10 +44,10 @@ section > h1 {
 }
 section > ul, p {
 	padding: 0;
-	list-style: inside;
+	list-style: "-" outside;
 }
 section > ul > li {
-        margin-bottom: 2px;
+        margin-bottom: 5px;
 }
 section > ul > li > a:visited {
 	color: #AAA;
@@ -55,9 +55,6 @@ section > ul > li > a:visited {
 footer {
 	text-align: center;
 	font-size: 12px;
-}
-.center {
-	text-align: center;
 }
 `
 
