@@ -63,7 +63,7 @@ const tmplPage string = `
 <html>
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{.CurrentDate}} | Feedloggr</title>
 	<link href="./style.css" rel="stylesheet" type="text/css">
 </head>
