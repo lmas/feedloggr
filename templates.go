@@ -45,13 +45,20 @@ section > h1 {
 section > ul, p {
 	padding: 0;
 	margin: 20px 0;
-	list-style: "-" outside;
+	list-style: none;
 }
 section > ul > li {
         margin-bottom: 5px;
 }
 section > ul > li > a:visited {
 	color: #AAA;
+}
+section > ul > hr {
+        padding: 0;
+        border: 0;
+        height: 1px;
+        margin: 5px 0px;
+        background-image: linear-gradient(to right, #ccc, #fff);
 }
 footer {
 	text-align: center;
@@ -80,9 +87,12 @@ const tmplPage string = `
 		{{if .Error}}
 		<p>Error while updating feed:<br />{{.Error}}</p>
 		{{else}}
-		<ul>{{range .Items}}
-			<li><a href="{{.URL}}" rel="nofollow">{{.Title}}</a></li>
-		{{end}}</ul>
+		<ul>
+		{{- range $i, $row := .Items}}
+			{{- if $i}}<hr>{{end}}
+			<li><a href="{{$row.URL}}" rel="nofollow">{{$row.Title}}</a></li>
+		{{- end}}
+		</ul>
 		{{end}}
 	</section>
 	{{else}}
