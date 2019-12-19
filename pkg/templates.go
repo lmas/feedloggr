@@ -1,4 +1,4 @@
-package feedloggr
+package pkg
 
 const tmplCSS string = `
 body {

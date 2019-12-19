@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lmas/feedloggr"
+	"github.com/lmas/feedloggr/pkg"
 )
 
 var (
@@ -27,12 +27,12 @@ func main() {
 	}
 
 	if *example {
-		cfg := feedloggr.NewConfig()
+		cfg := pkg.NewConfig()
 		fmt.Println(cfg)
 		return // simple exit(0)
 	}
 
-	cfg, err := feedloggr.LoadConfig(*config)
+	cfg, err := pkg.LoadConfig(*config)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -49,7 +49,7 @@ func main() {
 		cfg.Verbose = true
 	}
 
-	app, err := feedloggr.New(cfg)
+	app, err := pkg.New(cfg)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

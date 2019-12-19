@@ -1,4 +1,4 @@
-package feedloggr
+package pkg
 
 import (
 	"bytes"
