@@ -42,7 +42,7 @@ section > h1, nav > a {
 section > h1 {
 	background-color: #EEE;
 }
-section > ul, p {
+section > ul, section > p {
 	padding: 0;
 	margin: 20px 0;
 	list-style: none;
@@ -50,7 +50,7 @@ section > ul, p {
 section > ul > li {
         margin-bottom: 5px;
 }
-section > ul > li > a:visited {
+section > ul > a:visited {
 	color: #AAA;
 }
 section > ul > hr {
@@ -90,7 +90,7 @@ const tmplPage string = `
 		<ul>
 		{{- range $i, $row := .Items}}
 			{{- if $i}}<hr>{{end}}
-			<li><a href="{{$row.URL}}" rel="nofollow">{{$row.Title}}</a></li>
+			<a href="{{$row.URL}}" rel="nofollow"><li>{{$row.Title}}</li></a>
 		{{- end}}
 		</ul>
 		{{end}}
