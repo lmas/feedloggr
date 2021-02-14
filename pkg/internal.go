@@ -40,12 +40,9 @@ func loadFilter(path string) (*boom.ScalableBloomFilter, error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO
-var stringTest = tdl.New(1000)
-
 func seenTitle(title string, list []string) bool {
 	for _, s := range list {
-		score := stringTest.Distance(title, s)
+		score := tdl.Distance(title, s)
 		if score < 2 {
 			return true
 		}
