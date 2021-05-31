@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="style.css" rel="stylesheet" type="text/css">
+        <title>{{.Today | shortdate}} | Feedloggr</title>
+</head>
+<body>
+        <header>
+                <a class="header-button" href="news-{{.Today | nextday | shortdate}}.html">&lt;</a>
+                <a class="header-button" href="index.html">Latest</a>
+                <a class="header-button" href="news-{{.Today | prevday | shortdate}}.html">&gt;</a>
+        </header>
+        {{range .Feeds}}
+        <section class="feed">
+                <h1 class="feed-header"><a href="{{.Conf.Source}}" rel="nofollow">{{.Conf.Title}}</a></h1>
+                {{if .Error}}
+                <p class="feed-error">Error while updating feed:<br />{{.Error}}</p>
+                {{else}}
+                <ul class="feed-items">
+                {{range $i, $row := .Items}}
+                        {{if $i}}<hr>{{end}}
+                        <li><a href="{{$row.Url}}" rel="nofollow">{{$row.Title}}</a></li>
+                {{end}}
+                </ul>
+                {{end}}
+        </section>
+        {{else}}
+        <p class="no-feeds">Sorry, no news for today!</p>
+        {{end}}
+        <footer>
+                Generated with <a href="{{.Generator.Source}}">{{.Generator.Name}} {{.Generator.Version}}</a>
+        </footer>
+</body>
+</html>
+
