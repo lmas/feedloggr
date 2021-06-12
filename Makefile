@@ -36,6 +36,10 @@ gosec:
 	# go-fuzz-build -o "$(FUZZ_BUILD)" ./internal/
 	# go-fuzz -bin "$(FUZZ_BUILD)" -workdir "$(FUZZ_DIR)"
 
+.PHONY: build
+build:
+	go build -ldflags "-s -w" feedloggr.go
+
 .PHONY: clean
 clean:
 	go clean
