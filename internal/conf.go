@@ -38,6 +38,7 @@ func (f Feed) Source() string {
 type Settings struct {
 	Output   string // Dir to output the feeds and internal bloom filter
 	MaxItems int    // Max amount of items per feed and per day
+	Throttle int    // Time in seconds to sleep after a feed has been downloaded
 	Timeout  int    // Max time in seconds when trying to download a feed
 	Verbose  bool   // Verbose, debug output
 }
@@ -67,6 +68,7 @@ func ExampleConf() Conf {
 		Settings: Settings{
 			Output:   "./feeds/",
 			MaxItems: 20,
+			Throttle: 2,
 			Timeout:  30,
 			Verbose:  true,
 		},

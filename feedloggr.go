@@ -87,6 +87,7 @@ func main() {
 		},
 		Today: time.Now(),
 	}
+	throttle := time.Duration(conf.Settings.Throttle) * time.Second
 	for _, source := range conf.Feeds {
 		debug("Updating %s (%s)", source.Title, source.Url)
 		f := feed{
@@ -101,6 +102,7 @@ func main() {
 		if len(f.Items) > 0 || f.Error != nil {
 			vars.Feeds = append(vars.Feeds, f)
 		}
+		time.Sleep(throttle)
 	}
 
 	p := filepath.Join(conf.Settings.Output, "news-"+vars.Today.Format("2006-01-02")+".html")
