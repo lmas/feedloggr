@@ -8,9 +8,9 @@
 </head>
 <body>
         <header>
-                <a class="header-button" href="news-{{.Today | nextday | shortdate}}.html">&lt;</a>
-                <a class="header-button" href="index.html">Latest</a>
-                <a class="header-button" href="news-{{.Today | prevday | shortdate}}.html">&gt;</a>
+                <a class="header-button" href="./news-{{.Today | nextday | shortdate}}.html">&lt;</a>
+                <a class="header-button" href="./index.html">Latest</a>
+                <a class="header-button" href="./news-{{.Today | prevday | shortdate}}.html">&gt;</a>
         </header>
         {{range .Feeds}}
         <section class="feed">
