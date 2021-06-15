@@ -66,8 +66,12 @@ func (g *Generator) WriteFilter(dir string) error {
 	return saveFilter(dir, g.filter)
 }
 
-// Filter filters out old, already seen items, sorts them by their titles and then cuts of excess amounts
+// Filter cuts of excess items (if more than conf.MaxItems), filters out previously seen items with URL and finally
+// sorts the items by their Title.
 func (g *Generator) Filter(items ...Item) []Item {
+	if len(items) > g.conf.Settings.MaxItems {
+		items = items[:g.conf.Settings.MaxItems]
+	}
 	// TODO: avoid making new slice?
 	var filtered []Item
 	for _, i := range items {
@@ -78,9 +82,6 @@ func (g *Generator) Filter(items ...Item) []Item {
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].Title < filtered[j].Title
 	})
-	if len(filtered) > g.conf.Settings.MaxItems {
-		filtered = filtered[:g.conf.Settings.MaxItems]
-	}
 	return filtered
 }
 
