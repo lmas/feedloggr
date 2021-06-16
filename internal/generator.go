@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mmcdole/gofeed"
-	boom "github.com/tylertreat/BoomFilters"
 )
 
 // Basic info about this generator
@@ -40,7 +39,7 @@ type Generator struct {
 	conf       Conf
 	client     *http.Client
 	feedParser *gofeed.Parser
-	filter     *boom.StableBloomFilter
+	filter     *filter
 }
 
 // New creates a new Generator instance, based on conf
@@ -79,7 +78,7 @@ func (g *Generator) NewItems(f Feed) ([]Item, error) {
 		return nil, err
 	}
 
-	return g.Filter(items...), nil
+	return g.filter.filterItems(g.conf.Settings.MaxItems, items...), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -157,4 +156,14 @@ func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) ([]Item, error) {
 		})
 	}
 	return items, nil
+}
+
+// WriteFilter writes the internal bloom filter to dir.
+func (g *Generator) WriteFilter(dir string) error {
+	return g.filter.write(dir)
+}
+
+// FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
+func (g *Generator) FilterStats() FilterStats {
+	return g.filter.stats()
 }

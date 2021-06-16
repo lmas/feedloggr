@@ -127,12 +127,6 @@ func main() {
 		panic(err)
 	}
 	if conf.Settings.Verbose {
-		s := gen.FilterStats()
-		fmt.Println("Filter Stats")
-		fmt.Println("Cells:		", s.Cells)
-		fmt.Println("Hashes:		", s.HashFunctions)
-		fmt.Println("CellDecrement:	", s.CellDecrement)
-		fmt.Println("ActualFalsePos:	", s.FalsePositiveRate)
-		fmt.Println("StablePoint:	", s.StablePoint)
+		fmt.Printf("Filter stats: %+v\n", gen.FilterStats())
 	}
 }

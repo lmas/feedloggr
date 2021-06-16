@@ -6,7 +6,7 @@ COVER_HTML=.cover.html
 
 .PHONY: test
 test:
-	go test -race -coverprofile="${COVER}" ./...
+	go test -v -race -coverprofile="${COVER}" ./...
 
 .PHONY: cover
 cover:
