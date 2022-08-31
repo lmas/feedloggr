@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/lmas/feedloggr/internal"
@@ -12,7 +13,6 @@ import (
 
 var (
 	confFile    = flag.String("conf", ".feedloggr.yml", "Path to conf file")
-	confClean   = flag.Bool("clean", false, "Clean up old pages and exit")
 	confExample = flag.Bool("example", false, "Print example config and exit")
 	confTest    = flag.Bool("test", false, "Load config and exit")
 	confVerbose = flag.Bool("verbose", false, "Print debug messages while running")
@@ -46,9 +46,6 @@ func debug(msg string, args ...interface{}) {
 func main() {
 	flag.Parse()
 	switch {
-	case *confClean:
-		// TODO
-		os.Exit(0)
 	case *confExample:
 		fmt.Println(internal.ExampleConf())
 		os.Exit(0)
@@ -120,4 +117,43 @@ func main() {
 	if conf.Settings.Verbose {
 		fmt.Printf("Filter stats: %+v\n", gen.FilterStats())
 	}
+
+	if err := removeOldFiles(conf.Settings.Output, conf.Settings.MaxDays); err != nil {
+		panic(err)
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var reFile = regexp.MustCompile(`^.*/news-(\d\d\d\d-\d\d-\d\d).html$`)
+
+func removeOldFiles(dir string, maxDays int) error {
+	if maxDays < 1 {
+		return nil
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -1*maxDays)
+	files, err := filepath.Glob(filepath.Join(dir, "news-????-??-??.html"))
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		s := reFile.FindStringSubmatch(f)
+		if len(s) != 2 {
+			continue
+		}
+		t, err := time.Parse("2006-01-02", s[1])
+		if err != nil {
+			continue
+		}
+		if t.After(cutoff) {
+			continue
+		}
+		if err := os.Remove(f); err != nil {
+			return err
+		}
+		debug("Removed %s", f)
+	}
+	return nil
 }

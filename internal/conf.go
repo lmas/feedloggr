@@ -38,6 +38,7 @@ func (f Feed) Source() string {
 type Settings struct {
 	Output   string // Dir to output the feeds and internal bloom filter
 	Template string // Filepath to custom HTML template
+	MaxDays  int    // Max amount of days to keep generated pages for
 	MaxItems int    // Max amount of items per feed and per day
 	Throttle int    // Time in seconds to sleep after a feed has been downloaded
 	Timeout  int    // Max time in seconds when trying to download a feed
@@ -68,6 +69,7 @@ func ExampleConf() Conf {
 	return Conf{
 		Settings: Settings{
 			Output:   "./feeds/",
+			MaxDays:  30,
 			MaxItems: 20,
 			Throttle: 2,
 			Timeout:  30,

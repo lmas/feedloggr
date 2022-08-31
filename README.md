@@ -47,8 +47,6 @@ found inside the output directory that was specified in the configuration file.
 
 ```
 Usage of feedloggr:
-    -clean
-        Clean up old pages and exit
     -conf string
         Path to conf file (default ".feedloggr.yml")
     -example
@@ -72,6 +70,7 @@ Example configuration file:
     settings:
       output: ./feeds/
       template: new.html
+      maxdays: 30
       maxitems: 20
       throttle: 2
       timeout: 30
@@ -96,6 +95,10 @@ Global configuration settings.
 **template**
 
     Optional filepath to custom HTML template.
+
+**maxdays**
+
+    Optional max amount of days to keep the generated pages for.
 
 **maxitems**
 
