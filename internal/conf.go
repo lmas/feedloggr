@@ -3,7 +3,7 @@ package internal
 import (
 	"os"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Item represents a single news item in a feed
@@ -56,7 +56,7 @@ func LoadConf(path string) (Conf, error) {
 	if err != nil {
 		return c, err
 	}
-	if err := yaml.UnmarshalStrict(b, &c); err != nil {
+	if err := yaml.Unmarshal(b, &c); err != nil {
 		return c, err
 	}
 	return c, nil
