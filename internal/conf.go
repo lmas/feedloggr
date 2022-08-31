@@ -79,10 +79,10 @@ func ExampleConf() Conf {
 			},
 			{
 				Title: "Hacker News",
-				Url:   "https://news.ycombinator.com/",
+				Url:   "https://news.ycombinator.com/rss",
 				Parser: Parser{
-					Rule: `(?sU)class="storylink">(?P<title>[^<]+)</a>.*<a href="(?P<url>[^"]*)">\d+&nbsp;comments`,
-					Host: "https://news.ycombinator.com/",
+					Rule: `(?sU)<item>.*<title>(?P<title>[^<]+)</title>.*<comments>(?P<url>[^<]+)</comments>.*</item>`,
+					Host: "https://news.ycombinator.com/rss",
 				},
 			},
 		},
