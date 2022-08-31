@@ -71,6 +71,7 @@ Example configuration file:
 
     settings:
       output: ./feeds/
+      template: new.html
       maxitems: 20
       throttle: 2
       timeout: 30
@@ -91,6 +92,10 @@ Global configuration settings.
 **output**
 
     Output directory where generated pages and link filter are stored.
+
+**template**
+
+    Optional filepath to custom HTML template.
 
 **maxitems**
 

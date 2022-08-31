@@ -33,8 +33,18 @@ var TmplFuncs = html.FuncMap{
 }
 
 // LoadTemplates returns a html.Template struct, loaded with the parsed templates and ready for use
-func LoadTemplate() (*html.Template, error) {
-	tmpl, err := html.New("").Funcs(TmplFuncs).Parse(defaultTemplate)
+func LoadTemplate(file string) (*html.Template, error) {
+	var err error
+	tmpl := html.New("").Funcs(TmplFuncs)
+	if len(file) == 0 {
+		tmpl, err = tmpl.Parse(defaultTemplate)
+	} else {
+		var b []byte
+		b, err = os.ReadFile(file)
+		if err == nil {
+			tmpl, err = tmpl.Parse(string(b))
+		}
+	}
 	if err != nil {
 		return nil, err
 	}

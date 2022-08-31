@@ -45,10 +45,6 @@ func debug(msg string, args ...interface{}) {
 
 func main() {
 	flag.Parse()
-	tmpl, err := internal.LoadTemplate()
-	if err != nil {
-		panic(err)
-	}
 	switch {
 	case *confClean:
 		// TODO
@@ -75,6 +71,10 @@ func main() {
 		*confVerbose, conf.Settings.Verbose = true, true
 	}
 
+	tmpl, err := internal.LoadTemplate(conf.Settings.Template)
+	if err != nil {
+		panic(err)
+	}
 	gen, err := internal.New(conf)
 	if err != nil {
 		panic(err)

@@ -37,6 +37,7 @@ func (f Feed) Source() string {
 // Settings contains the general Generator settings
 type Settings struct {
 	Output   string // Dir to output the feeds and internal bloom filter
+	Template string // Filepath to custom HTML template
 	MaxItems int    // Max amount of items per feed and per day
 	Throttle int    // Time in seconds to sleep after a feed has been downloaded
 	Timeout  int    // Max time in seconds when trying to download a feed
