@@ -1,72 +1,139 @@
 
-feedloggr v3.0
-================================================================================
+# feedloggr v0.3
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/lmas/feedloggr)](https://pkg.go.dev/github.com/lmas/feedloggr)
 
-Collect news from your favorite RSS/Atom feeds and generate simple and static
-web pages to browse the news in.
+Collect news from your favourite Atom/RSS/JSON feeds and generate static web pages for easy browsing.
 
-Status
---------------------------------------------------------------------------------
 
-The project is now in beta stage and being actively used at https://lmas.se/news
+## Status
 
-Installation
---------------------------------------------------------------------------------
+The project has successfully been running since June 2021 without any major issues on my own sites.
+And the only minor issues discovered so far has been with external feeds with poor behaviour.
+
+
+## Installation
 
     go install github.com/lmas/feedloggr
 
-Usage
---------------------------------------------------------------------------------
+
+## Usage
 
 For a list of available flags and commands:
 
     feedloggr -h
 
-You can create a new config file by running:
+You can create a new configuration file by running:
 
-    feedloggr -example > .feedloggr3.conf
+    feedloggr -example > .feedloggr.yaml
 
-You should then edit `.feedloggr3.conf` and add in your RSS/Atom feeds.
-The format of the config is [TOML](https://github.com/toml-lang/toml).
+You should then edit file and add in your news feeds.
 
-When you're done editting the config, you can test it and make sure there's no
-errors in it:
+When you're done editing the configuration, you can test it and make sure there's no errors in it:
 
     feedloggr -test
 
 If no errors are shown, you're good to go.
 
-Now that you have a working config, it's time to start collect news from your
-feeds and create a new web page showing all the collected news:
+Now that you have a working configuration,
+it's time to start collect news from your feeds and create a new web page showing all the collected news:
 
     feedloggr
 
-When it's done you should be able to browse the newly generated pages, found
-inside the output directory that was specified in the config file.
+When it's done you should be able to browse the newly generated pages,
+found inside the output directory that was specified in the configuration file.
 
-Configuration
---------------------------------------------------------------------------------
 
-    Verbose = true | false
+## Command line options
 
-Show verbose logs while running. Default to false.
+```
+Usage of feedloggr:
+    -clean
+        Clean up old pages and exit
+    -conf string
+        Path to conf file (default ".feedloggr.yaml")
+    -example
+        Print example config and exit
+    -test
+        Load config and exit
+    -verbose
+        Print debug messages while running
+    -version
+        Print version and exit
+```
 
-    OutputPath = "/path/to/dir"
 
-Path to directory where new pages will be stored in.
+## Configuration
 
-    Timeout = seconds
+Configuration is by default loaded from the file `.feedloggr.yaml` in the current directory,
+but can be overridden with the `-conf` flag.
 
-Read timeout when sending HTTP GET requests, when updating the feeds.
+Example configuration file:
 
-    [Feeds]
-    "Example" = "https://example.com/rss"
-    "Example2" = "https://somewhereelse.com/rss"
+    settings:
+      output: ./feeds/
+      maxitems: 20
+      throttle: 2
+      timeout: 30
+      verbose: true
+    feeds:
+    - title: Reddit
+      url: https://old.reddit.com/.rss
+    - title: Tech - Hacker News
+      url: https://news.ycombinator.com/rss
+      parser:
+        rule: (?sU)<item>.*<title>(?P<title>[^<]+)</title>.*<comments>(?P<url>[^<]+)</comments>.*</item>
+        host: https://news.ycombinator.com/rss
 
-List of RSS/Atom feeds, `feedloggr` tries to download the feeds from the URLs.
+### settings
 
-License
---------------------------------------------------------------------------------
+Global configuration settings.
 
-MIT License, see LICENSE.
+**output**
+
+    Output directory where generated pages and link filter are stored.
+
+**maxitems**
+
+    Max amount of items to fetch from each feed.
+
+**throttle**
+
+    Stupid simple time to sleep (in seconds) between each feed update.
+
+**timeout**
+
+    Max time (in seconds) to try download feed before timing out.
+
+**verbose**
+
+   Show verbose output when running.
+
+### feeds
+
+List of Atom/RSS/JSON feeds.
+
+**title**
+
+    Custom title for a feed.
+
+**url**
+
+    Source feed URL for fetching new updates.
+
+### parser
+
+Regexp rules to either parse a non-standard feed or for fetching specific parts of a regular feed.
+
+**rule**
+
+    Regexp rule for fetching items from source URL. It must provide two capture groups called "title" and "url".
+
+**host**
+
+    Optional host value for item URLs with a missing host prefix.
+
+
+## License
+
+GPL, See the [LICENSE](LICENSE) file for details.
 
