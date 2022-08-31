@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	confFile    = flag.String("conf", ".feedloggr.yaml", "Path to conf file")
+	confFile    = flag.String("conf", ".feedloggr.yml", "Path to conf file")
 	confClean   = flag.Bool("clean", false, "Clean up old pages and exit")
 	confExample = flag.Bool("example", false, "Print example config and exit")
 	confTest    = flag.Bool("test", false, "Load config and exit")

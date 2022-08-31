@@ -24,7 +24,7 @@ For a list of available flags and commands:
 
 You can create a new configuration file by running:
 
-    feedloggr -example > .feedloggr.yaml
+    feedloggr -example > .feedloggr.yml
 
 You should then edit file and add in your news feeds.
 
@@ -50,7 +50,7 @@ Usage of feedloggr:
     -clean
         Clean up old pages and exit
     -conf string
-        Path to conf file (default ".feedloggr.yaml")
+        Path to conf file (default ".feedloggr.yml")
     -example
         Print example config and exit
     -test
@@ -64,7 +64,7 @@ Usage of feedloggr:
 
 ## Configuration
 
-Configuration is by default loaded from the file `.feedloggr.yaml` in the current directory,
+Configuration is by default loaded from the file `.feedloggr.yml` in the current directory,
 but can be overridden with the `-conf` flag.
 
 Example configuration file:
