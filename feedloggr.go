@@ -45,7 +45,7 @@ func debug(msg string, args ...interface{}) {
 
 func main() {
 	flag.Parse()
-	tmpls, err := internal.LoadTemplates()
+	tmpl, err := internal.LoadTemplate()
 	if err != nil {
 		panic(err)
 	}
@@ -106,21 +106,12 @@ func main() {
 	}
 
 	p := filepath.Join(conf.Settings.Output, "news-"+vars.Today.Format("2006-01-02")+".html")
-	if err := internal.WriteTemplate(p, "layout.html", tmpls, vars); err != nil {
+	if err := internal.WriteTemplate(p, tmpl, vars); err != nil {
 		panic(err)
 	}
 	debug("Wrote %s", p)
 	if err := internal.Symlink(p, filepath.Join(conf.Settings.Output, "index.html")); err != nil {
 		panic(err)
-	}
-
-	p = filepath.Join(conf.Settings.Output, "style.css")
-	if _, err := os.Stat(p); err != nil {
-		// // TODO: should probably make sure the error is an IsNotExist
-		if err := internal.WriteTemplate(p, "style.css", tmpls, vars); err != nil {
-			panic(err)
-		}
-		debug("Wrote %s", p)
 	}
 
 	if err := gen.WriteFilter(conf.Settings.Output); err != nil {

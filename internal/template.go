@@ -2,7 +2,7 @@ package internal
 
 import (
 	"bytes"
-	"embed"
+	_ "embed"
 	"errors"
 	html "html/template"
 	"io/fs"
@@ -11,11 +11,8 @@ import (
 	"time"
 )
 
-var (
-	//go:embed templates/*
-	content embed.FS
-	dir     = "templates"
-)
+//go:embed default.html
+var defaultTemplate string
 
 const (
 	filePerm fs.FileMode = 0644
@@ -36,31 +33,18 @@ var TmplFuncs = html.FuncMap{
 }
 
 // LoadTemplates returns a html.Template struct, loaded with the parsed templates and ready for use
-func LoadTemplates() (*html.Template, error) {
-	tmpls := html.New("")
-	err := fs.WalkDir(content, dir, func(path string, de fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		} else if de.IsDir() {
-			return nil
-		}
-		b, err := content.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		_, err = tmpls.New(filepath.Base(path)).Funcs(TmplFuncs).Parse(string(b))
-		return err
-	})
+func LoadTemplate() (*html.Template, error) {
+	tmpl, err := html.New("").Funcs(TmplFuncs).Parse(defaultTemplate)
 	if err != nil {
 		return nil, err
 	}
-	return tmpls, nil
+	return tmpl, nil
 }
 
 // WriteTemplate executes a loaded template and writes it's output to a file
-func WriteTemplate(file, name string, tmpls *html.Template, vars interface{}) error {
+func WriteTemplate(file string, tmpl *html.Template, vars interface{}) error {
 	var buf bytes.Buffer
-	if err := tmpls.ExecuteTemplate(&buf, name, vars); err != nil {
+	if err := tmpl.Execute(&buf, vars); err != nil {
 		return err
 	}
 	d := filepath.Dir(file)
