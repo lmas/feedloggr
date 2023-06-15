@@ -28,39 +28,47 @@ func (h hashwrap) Sum64() uint64 {
 }
 
 type filter struct {
-	b *boom.ScalableBloomFilter
+	bloom *boom.ScalableBloomFilter
+	path  string
 }
 
-func loadFilter(path string) (*filter, error) {
-	b := boom.NewDefaultScalableBloomFilter(defaultFilterRate)
+func loadFilter(dir string) (*filter, error) {
+	bloom := boom.NewDefaultScalableBloomFilter(defaultFilterRate)
 	// The default hash is fast but might not be as close to the false positive rate as we expect,
 	// so instead use sha256 (slower but more accurate, see https://github.com/tylertreat/BoomFilters/pull/1)
-	b.SetHash(hashwrap{Hash: sha256.New()})
+	bloom.SetHash(hashwrap{Hash: sha256.New()})
 	filter := &filter{
-		b: b,
+		bloom: bloom,
+		path:  filepath.Join(dir, defaultFilterPath),
 	}
-	f, err := os.Open(path) // #nosec G304
+
+	f, err := os.Open(filter.path) // #nosec G304
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			// If not done for a new and empty filter, the filter data won't be
+			// saved properly after the first run for some reason
+			// (might be upstream bug)
+			bloom = bloom.Reset()
 			return filter, nil
 		}
 		return nil, err
 	}
+
 	defer f.Close() // #nosec G307
-	if _, err := filter.b.ReadFrom(f); err != nil {
+	if _, err := bloom.ReadFrom(f); err != nil {
 		return nil, err
 	}
 	return filter, nil
 }
 
-func (f *filter) write(dir string) error {
-	path := filepath.Join(dir, defaultFilterPath)
-	fd, err := os.Create(path)
+func (f *filter) write() error {
+	fd, err := os.Create(f.path)
 	if err != nil {
 		return err
 	}
+
 	defer fd.Close() // #nosec G307
-	_, err = f.b.WriteTo(fd)
+	_, err = f.bloom.WriteTo(fd)
 	return err
 }
 
@@ -73,7 +81,7 @@ func (f *filter) filterItems(max int, items ...Item) []Item {
 	// TODO: avoid making new slice?
 	var filtered []Item
 	for _, i := range items {
-		if f.b.TestAndAdd([]byte(i.Url)) == false {
+		if f.bloom.TestAndAdd([]byte(i.Url)) == false {
 			filtered = append(filtered, i)
 		}
 	}
@@ -102,8 +110,8 @@ func (fs FilterStats) String() string {
 // FilterStats returns basic info about the internal Bloom Filter...
 func (f *filter) stats() FilterStats {
 	return FilterStats{
-		f.b.Capacity(),
-		f.b.K(),
-		f.b.FillRatio(),
+		f.bloom.Capacity(),
+		f.bloom.K(),
+		f.bloom.FillRatio(),
 	}
 }

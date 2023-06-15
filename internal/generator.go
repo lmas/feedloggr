@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -25,6 +24,7 @@ type transport struct {
 
 func newTransport(dir string) *transport {
 	d := http.DefaultTransport
+	// The file protocol enables easier testing
 	d.(*http.Transport).RegisterProtocol("file", http.NewFileTransport(http.Dir(dir)))
 	return &transport{d}
 }
@@ -52,9 +52,8 @@ func New(conf Conf) (*Generator, error) {
 		},
 		feedParser: gofeed.NewParser(),
 	}
-	p := filepath.Join(conf.Settings.Output, defaultFilterPath)
 	var err error
-	if g.filter, err = loadFilter(p); err != nil {
+	if g.filter, err = loadFilter(conf.Settings.Output); err != nil {
 		return nil, err
 	}
 	return g, nil
@@ -78,7 +77,11 @@ func (g *Generator) NewItems(f Feed) ([]Item, error) {
 		return nil, err
 	}
 
-	return g.filter.filterItems(g.conf.Settings.MaxItems, items...), nil
+	filtered := g.filter.filterItems(g.conf.Settings.MaxItems, items...)
+	if err = g.filter.write(); err != nil {
+		return nil, err
+	}
+	return filtered, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,11 +159,6 @@ func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) ([]Item, error) {
 		})
 	}
 	return items, nil
-}
-
-// WriteFilter writes the internal bloom filter to dir.
-func (g *Generator) WriteFilter(dir string) error {
-	return g.filter.write(dir)
 }
 
 // FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
