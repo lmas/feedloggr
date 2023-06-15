@@ -32,6 +32,35 @@ var TmplFuncs = html.FuncMap{
 	},
 }
 
+type TemplateGenerator struct {
+	Name    string
+	Version string
+	Source  string
+}
+
+type TemplateFeed struct {
+	Conf  Feed
+	Items []Item
+	Error error
+}
+
+type TemplateVars struct {
+	Today     time.Time
+	Generator TemplateGenerator
+	Feeds     []Feed
+}
+
+func NewTemplateVars() TemplateVars {
+	return TemplateVars{
+		Today: time.Now(),
+		Generator: TemplateGenerator{
+			Name:    GeneratorName,
+			Version: GeneratorVersion,
+			Source:  GeneratorSource,
+		},
+	}
+}
+
 // LoadTemplates returns a html.Template struct, loaded with the parsed templates and ready for use
 func LoadTemplate(file string) (*html.Template, error) {
 	var err error
