@@ -47,7 +47,7 @@ type TemplateFeed struct {
 type TemplateVars struct {
 	Today     time.Time
 	Generator TemplateGenerator
-	Feeds     []Feed
+	Feeds     []TemplateFeed
 }
 
 func NewTemplateVars() TemplateVars {

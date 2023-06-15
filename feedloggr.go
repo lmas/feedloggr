@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -19,32 +20,10 @@ var (
 	confVersion = flag.Bool("version", false, "Print version and exit")
 )
 
-type generator struct {
-	Name    string
-	Version string
-	Source  string
-}
-
-type feed struct {
-	Conf  internal.Feed
-	Items []internal.Item
-	Error error
-}
-
-type vars struct {
-	Generator generator
-	Today     time.Time
-	Feeds     []feed
-}
-
-func debug(msg string, args ...interface{}) {
-	if *confVerbose {
-		fmt.Printf(msg+"\n", args...)
-	}
-}
-
 func main() {
 	flag.Parse()
+
+	// Early quitters
 	switch {
 	case *confExample:
 		fmt.Println(internal.ExampleConf())
@@ -58,12 +37,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	switch {
-	case *confTest:
+
+	// Late quitter
+	if *confTest {
 		fmt.Println(conf)
 		fmt.Println("No errors while loading config")
 		os.Exit(0)
-	case *confVerbose != conf.Settings.Verbose:
+	}
+
+	if *confVerbose != conf.Settings.Verbose {
 		// Weeell if one of 'em is true dey bath gotta be true nao
 		*confVerbose, conf.Settings.Verbose = true, true
 	}
@@ -72,50 +54,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	gen, err := internal.New(conf)
+
+	feeds, err := fetchFeeds(conf)
 	if err != nil {
 		panic(err)
 	}
-	vars := vars{
-		Generator: generator{
-			Name:    internal.GeneratorName,
-			Version: internal.GeneratorVersion,
-			Source:  internal.GeneratorSource,
-		},
-		Today: time.Now(),
-	}
-	throttle := time.Duration(conf.Settings.Throttle) * time.Second
-	for _, source := range conf.Feeds {
-		debug("Updating %s (%s)", source.Title, source.Url)
-		f := feed{
-			Conf: source,
-		}
-		f.Items, f.Error = gen.NewItems(source)
-		if f.Error != nil {
-			debug("\tError: %s", f.Error)
-		} else {
-			debug("\tItems: %d", len(f.Items))
-		}
-		if len(f.Items) > 0 || f.Error != nil {
-			vars.Feeds = append(vars.Feeds, f)
-		}
-		time.Sleep(throttle)
-	}
 
-	p := filepath.Join(conf.Settings.Output, "news-"+vars.Today.Format("2006-01-02")+".html")
-	if err := internal.WriteTemplate(p, tmpl, vars); err != nil {
+	if err := writeFiles(conf.Settings.Output, feeds, tmpl); err != nil {
 		panic(err)
-	}
-	debug("Wrote %s", p)
-	if err := internal.Symlink(p, filepath.Join(conf.Settings.Output, "index.html")); err != nil {
-		panic(err)
-	}
-
-	if err := gen.WriteFilter(conf.Settings.Output); err != nil {
-		panic(err)
-	}
-	if conf.Settings.Verbose {
-		fmt.Printf("Filter stats: %+v\n", gen.FilterStats())
 	}
 
 	if err := removeOldFiles(conf.Settings.Output, conf.Settings.MaxDays); err != nil {
@@ -124,6 +70,57 @@ func main() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func debug(msg string, args ...interface{}) {
+	if *confVerbose {
+		fmt.Printf(msg+"\n", args...)
+	}
+}
+
+func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
+	gen, err := internal.New(conf)
+	if err != nil {
+		return
+	}
+	throttle := time.Duration(conf.Settings.Throttle) * time.Second
+
+	for _, source := range conf.Feeds {
+		debug("Updating %s (%s)", source.Title, source.Url)
+		items, err := gen.NewItems(source)
+		if err != nil {
+			debug("\tError: %s", err)
+		} else {
+			debug("\tItems: %d", len(items))
+		}
+
+		if len(items) > 0 || err != nil {
+			feeds = append(feeds, internal.TemplateFeed{
+				Conf:  source,
+				Items: items,
+				Error: err,
+			})
+		}
+
+		time.Sleep(throttle)
+	}
+
+	debug("Filter stats: %+v\n", gen.FilterStats())
+	return
+}
+
+func writeFiles(dir string, feeds []internal.TemplateFeed, tmpl *template.Template) error {
+	v := internal.NewTemplateVars()
+	v.Feeds = feeds
+	p := filepath.Join(dir, "news-"+v.Today.Format("2006-01-02")+".html")
+	if err := internal.WriteTemplate(p, tmpl, v); err != nil {
+		return err
+	}
+	debug("Wrote %s", p)
+	if err := internal.Symlink(p, filepath.Join(dir, "index.html")); err != nil {
+		return err
+	}
+	return nil
+}
 
 var reFile = regexp.MustCompile(`^.*/news-(\d\d\d\d-\d\d-\d\d).html$`)
 
