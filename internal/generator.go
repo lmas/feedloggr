@@ -120,28 +120,29 @@ func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {
 }
 
 // ParsePage sets up a bunch of regexp rules and urls and tries to parse a raw page body for custom items
-func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) ([]Item, error) {
+func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) (items []Item, err error) {
 	re, err := regexp.Compile(feed.Parser.Rule)
 	if err != nil {
-		return nil, err
+		return
 	}
 	it, iu, ic := re.SubexpIndex("title"), re.SubexpIndex("url"), re.SubexpIndex("content")
 	if it == -1 || iu == -1 {
-		return nil, fmt.Errorf("filter rule missing title or url capture group: %s", feed.Parser.Rule)
+		err = fmt.Errorf("filter rule missing title or url capture group: %s", feed.Parser.Rule)
+		return
 	}
 	// blanket trust in the Host field, no matter what it's set as (or not set at all)
 	feedUrl, err := url.Parse(feed.Parser.Host)
 	if err != nil {
-		return nil, err
+		return
 	}
 	b, err := io.ReadAll(body)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var items []Item
 	for _, item := range re.FindAllSubmatch(b, -1) {
-		u, err := url.Parse(string(item[iu]))
+		var u *url.URL
+		u, err = url.Parse(string(item[iu]))
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +159,11 @@ func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) ([]Item, error) {
 			Content: c,
 		})
 	}
-	return items, nil
+
+	if len(items) < 1 {
+		err = fmt.Errorf("filter rule failed to match any items: %s", feed.Parser.Rule)
+	}
+	return
 }
 
 // FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
