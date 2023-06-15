@@ -82,7 +82,6 @@ func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
 	if err != nil {
 		return
 	}
-	throttle := time.Duration(conf.Settings.Throttle) * time.Second
 
 	for _, source := range conf.Feeds {
 		debug("Updating %s (%s)", source.Title, source.Url)
@@ -101,7 +100,7 @@ func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
 			})
 		}
 
-		time.Sleep(throttle)
+		time.Sleep(internal.RateLimit(conf.Settings.Jitter))
 	}
 
 	debug("Filter stats: %+v\n", gen.FilterStats())

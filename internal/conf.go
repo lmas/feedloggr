@@ -40,7 +40,7 @@ type Settings struct {
 	Template string // Filepath to custom HTML template
 	MaxDays  int    // Max amount of days to keep generated pages for
 	MaxItems int    // Max amount of items per feed and per day
-	Throttle int    // Time in seconds to sleep after a feed has been downloaded
+	Jitter   int    // Time in seconds used for randomising rate limits.
 	Timeout  int    // Max time in seconds when trying to download a feed
 	Verbose  bool   // Verbose, debug output
 }
@@ -71,7 +71,7 @@ func ExampleConf() Conf {
 			Output:   "./feeds/",
 			MaxDays:  30,
 			MaxItems: 20,
-			Throttle: 2,
+			Jitter:   2,
 			Timeout:  30,
 			Verbose:  true,
 		},
