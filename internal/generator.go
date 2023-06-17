@@ -3,10 +3,8 @@ package internal
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"regexp"
-	"time"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -18,38 +16,22 @@ const (
 	GeneratorSource  string = "https://github.com/lmas/feedloggr"
 )
 
-type transport struct {
-	http.RoundTripper
-}
-
-func newTransport(dir string) *transport {
-	d := http.DefaultTransport
-	// The file protocol enables easier testing
-	d.(*http.Transport).RegisterProtocol("file", http.NewFileTransport(http.Dir(dir)))
-	return &transport{d}
-}
-
-func (t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
-	r.Header.Set("User-Agent", "linux:"+GeneratorName+":"+GeneratorVersion+" ("+GeneratorSource+")")
-	return t.RoundTripper.RoundTrip(r)
-}
-
 // Generator contains the runtime state for downloading/parsing/filtering and finally writing news feeds
 type Generator struct {
 	conf       Conf
-	client     *http.Client
+	client     *client
 	feedParser *gofeed.Parser
 	filter     *filter
 }
 
 // New creates a new Generator instance, based on conf
-func New(conf Conf) (*Generator, error) {
+func NewGenerator(conf Conf) (*Generator, error) {
 	g := &Generator{
 		conf: conf,
-		client: &http.Client{
-			Transport: newTransport("."),
-			Timeout:   time.Duration(conf.Settings.Timeout) * time.Second,
-		},
+		client: newClient(clientConf{
+			Timeout: conf.Settings.Timeout,
+			Jitter:  conf.Settings.Jitter,
+		}),
 		feedParser: gofeed.NewParser(),
 	}
 	var err error
@@ -61,7 +43,7 @@ func New(conf Conf) (*Generator, error) {
 
 // NewItems is a shortcut to download/parse/filter a news feed
 func (g *Generator) NewItems(f Feed) ([]Item, error) {
-	body, err := g.Download(f)
+	body, err := g.client.RateLimitedGet(f.Url)
 	if err != nil {
 		return nil, err
 	}
@@ -85,18 +67,6 @@ func (g *Generator) NewItems(f Feed) ([]Item, error) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Download simply tries to download the body of a feed, using a custom http.Transport
-func (g *Generator) Download(feed Feed) (io.ReadCloser, error) {
-	r, err := g.client.Get(feed.Url)
-	if err != nil {
-		return nil, err
-	}
-	if r.StatusCode < 200 || r.StatusCode > 299 {
-		return nil, fmt.Errorf("bad response status: %s", r.Status)
-	}
-	return r.Body, nil
-}
 
 // ParseFeed tries to parse a normal atom/rss/json feed and return it's items
 func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {

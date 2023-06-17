@@ -78,7 +78,7 @@ func debug(msg string, args ...interface{}) {
 }
 
 func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
-	gen, err := internal.New(conf)
+	gen, err := internal.NewGenerator(conf)
 	if err != nil {
 		return
 	}
@@ -99,8 +99,6 @@ func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
 				Error: err,
 			})
 		}
-
-		time.Sleep(internal.RateLimit(conf.Settings.Jitter))
 	}
 
 	debug("Filter stats: %+v\n", gen.FilterStats())
