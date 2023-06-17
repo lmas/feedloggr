@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	confFile    = flag.String("conf", ".feedloggr.yml", "Path to conf file")
-	confExample = flag.Bool("example", false, "Print example config and exit")
-	confTest    = flag.Bool("test", false, "Load config and exit")
-	confVerbose = flag.Bool("verbose", false, "Print debug messages while running")
-	confVersion = flag.Bool("version", false, "Print version and exit")
+	confFile     = flag.String("conf", ".feedloggr.yml", "Path to conf file")
+	confExample  = flag.Bool("example", false, "Print example config and exit")
+	confTest     = flag.Bool("test", false, "Load config and exit")
+	confVerbose  = flag.Bool("verbose", false, "Print debug messages while running")
+	confVersion  = flag.Bool("version", false, "Print version and exit")
+	confDiscover = flag.String("discover", "", "Try to discover feeds at URL")
 )
 
 func main() {
@@ -30,6 +31,19 @@ func main() {
 		os.Exit(0)
 	case *confVersion:
 		fmt.Printf("%s %s\n", internal.GeneratorName, internal.GeneratorVersion)
+		os.Exit(0)
+	case *confDiscover != "":
+		feeds, err := internal.DiscoverFeeds(*confDiscover)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		} else if len(feeds) < 1 {
+			fmt.Println("No feeds found")
+		} else {
+			fmt.Println("Possible feeds:")
+			for i, f := range feeds {
+				fmt.Printf("#%d\t %s\n", i+1, f)
+			}
+		}
 		os.Exit(0)
 	}
 
