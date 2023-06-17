@@ -68,6 +68,21 @@ func (g *Generator) NewItems(f Feed) ([]Item, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func newItem(title, url, content string) Item {
+	if title == "" {
+		if content != "" {
+			title = content
+		} else {
+			title = url // Last ditch thing
+		}
+	}
+	return Item{
+		Title:   title,
+		Url:     url,
+		Content: content,
+	}
+}
+
 // ParseFeed tries to parse a normal atom/rss/json feed and return it's items
 func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {
 	f, err := g.feedParser.Parse(body)
@@ -76,15 +91,13 @@ func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {
 	}
 	var items []Item
 	for _, i := range f.Items {
-		c := i.Content
-		if c == "" {
-			c = i.Description
+		if i.Link == "" {
+			continue // You never know, I have low expectations of site feeds...
 		}
-		items = append(items, Item{
-			Title:   i.Title,
-			Url:     i.Link,
-			Content: c,
-		})
+		if i.Content == "" {
+			i.Content = i.Description
+		}
+		items = append(items, newItem(i.Title, i.Link, i.Content))
 	}
 	return items, nil
 }
@@ -119,15 +132,15 @@ func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) (items []Item, err 
 		if u.Scheme == "" || u.Host == "" {
 			u = feedUrl.ResolveReference(u)
 		}
+		var t string
+		if it != -1 {
+			t = string(item[it])
+		}
 		var c string
 		if ic != -1 {
 			c = string(item[ic])
 		}
-		items = append(items, Item{
-			Title:   string(item[it]),
-			Url:     u.String(),
-			Content: c,
-		})
+		items = append(items, newItem(t, u.String(), c))
 	}
 
 	if len(items) < 1 {
