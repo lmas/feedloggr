@@ -75,7 +75,12 @@ func cmdHelp(args []string) error {
 }
 
 func cmdVersion(args []string) error {
-	fmt.Printf("%s %s\n", internal.GeneratorName, internal.GeneratorVersion)
+	// This is supposed to be a toilet/paper roll
+	fmt.Printf("  ,-. \n"+
+		" ( O )`~-~-~-~-~-~-~-~-~-, \n"+
+		" |`-'|  -- %s --\t | \n"+
+		" |   |     %s\t | \n"+
+		"  `-' `~-~-~-~-~-~-~-~-~-' \n", internal.GeneratorName, internal.GeneratorVersion)
 	return nil
 }
 
@@ -87,7 +92,7 @@ func cmdExample(args []string) error {
 func cmdTest(args []string) error {
 	conf, err := internal.LoadConf(*confFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Println(conf)
 	fmt.Println("No errors while loading config")
