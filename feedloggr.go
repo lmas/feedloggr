@@ -7,56 +7,117 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/lmas/feedloggr/internal"
 )
 
+type command struct {
+	Cmd  string
+	Help string
+	Func func([]string) error
+}
+
 var (
-	confFile     = flag.String("conf", ".feedloggr.yml", "Path to conf file")
-	confExample  = flag.Bool("example", false, "Print example config and exit")
-	confTest     = flag.Bool("test", false, "Load config and exit")
-	confVerbose  = flag.Bool("verbose", false, "Print debug messages while running")
-	confVersion  = flag.Bool("version", false, "Print version and exit")
-	confDiscover = flag.String("discover", "", "Try to discover feeds at URL")
+	confFile    = flag.String("conf", ".feedloggr.yml", "Path to conf file")
+	confVerbose = flag.Bool("verbose", false, "Print debug messages while running")
+
+	commands []command
 )
 
 func main() {
-	flag.Parse()
-
-	// Early quitters
-	switch {
-	case *confExample:
-		fmt.Println(internal.ExampleConf())
-		os.Exit(0)
-	case *confVersion:
-		fmt.Printf("%s %s\n", internal.GeneratorName, internal.GeneratorVersion)
-		os.Exit(0)
-	case *confDiscover != "":
-		feeds, err := internal.DiscoverFeeds(*confDiscover)
-		if err != nil {
-			fmt.Println("Error: ", err)
-		} else if len(feeds) < 1 {
-			fmt.Println("No feeds found")
-		} else {
-			fmt.Println("Possible feeds:")
-			for i, f := range feeds {
-				fmt.Printf("#%d\t %s\n", i+1, f)
-			}
-		}
-		os.Exit(0)
+	commands = []command{
+		{"discover", "Try discover feeds from URL", cmdDiscover},
+		{"example", "Print example config", cmdExample},
+		{"help", "Print this help message and exit", cmdHelp},
+		{"run", "Update feeds and output new page", cmdRun},
+		{"test", "Try loading config", cmdTest},
+		{"version", "Print version information", cmdVersion},
 	}
 
+	flag.Usage = printUsage
+	flag.Parse()
+	cmd := strings.ToLower(flag.Arg(0))
+	args := flag.Args()
+	if len(args) > 0 {
+		args = args[1:] // Removes the cmd arg
+	}
+
+	for _, c := range commands {
+		if c.Cmd == cmd {
+			if err := c.Func(args); err != nil {
+				panic(err)
+			}
+			return
+		}
+	}
+
+	printUsage()
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func printUsage() {
+	out := flag.CommandLine.Output()
+	fmt.Fprintf(out, "Usage of %s:\n\n", os.Args[0])
+	fmt.Fprintln(out, "Flags")
+	flag.PrintDefaults()
+	fmt.Fprintln(out, "\nCommands")
+	for _, c := range commands {
+		fmt.Fprintf(out, "  %s\n\t%s\n", c.Cmd, c.Help)
+	}
+}
+
+func cmdHelp(args []string) error {
+	printUsage()
+	return nil
+}
+
+func cmdVersion(args []string) error {
+	fmt.Printf("%s %s\n", internal.GeneratorName, internal.GeneratorVersion)
+	return nil
+}
+
+func cmdExample(args []string) error {
+	fmt.Println(internal.ExampleConf())
+	return nil
+}
+
+func cmdTest(args []string) error {
 	conf, err := internal.LoadConf(*confFile)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(conf)
+	fmt.Println("No errors while loading config")
+	return nil
+}
 
-	// Late quitter
-	if *confTest {
-		fmt.Println(conf)
-		fmt.Println("No errors while loading config")
-		os.Exit(0)
+func cmdDiscover(args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("discover command expects a single argument: URL, but got: %s", args)
+	}
+
+	url := strings.ToLower(args[0])
+	feeds, err := internal.DiscoverFeeds(url)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	} else if len(feeds) < 1 {
+		fmt.Println("No feeds found")
+	} else {
+		fmt.Println("Possible feeds:")
+		for i, f := range feeds {
+			fmt.Printf("#%d\t %s\n", i+1, f)
+		}
+	}
+	return nil
+}
+
+func cmdRun(args []string) error {
+	conf, err := internal.LoadConf(*confFile)
+	if err != nil {
+		return err
 	}
 
 	if *confVerbose != conf.Settings.Verbose {
@@ -66,21 +127,22 @@ func main() {
 
 	tmpl, err := internal.LoadTemplate(conf.Settings.Template)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	feeds, err := fetchFeeds(conf)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := writeFiles(conf.Settings.Output, feeds, tmpl); err != nil {
-		panic(err)
+		return err
 	}
 
 	if err := removeOldFiles(conf.Settings.Output, conf.Settings.MaxDays); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
