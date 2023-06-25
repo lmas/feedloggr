@@ -60,6 +60,8 @@ func DiscoverFeeds(site string) (feeds []string, err error) {
 		if u.Host == "" {
 			u.Host = parsed.Host
 		}
+		// Use RequestURI so we can check both the path and query parts of the
+		// URL, for example: /bla/bla/?mode=rss
 		p := strings.ToLower(u.RequestURI())
 		f := strings.ToLower(u.String())
 		for _, n := range discoverNames {
