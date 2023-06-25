@@ -115,12 +115,12 @@ func TestFilterFalsePositiveRate(t *testing.T) {
 	buf := make([]byte, 4)
 	for i := 0; i < maxItems; i++ {
 		binary.BigEndian.PutUint32(buf, uint32(i))
-		f.b.Add(buf)
+		f.bloom.Add(buf)
 	}
 	fp := 0
 	for i := 0; i < maxItems; i++ {
 		binary.BigEndian.PutUint32(buf, uint32(i+maxItems+1))
-		if f.b.Test(buf) {
+		if f.bloom.Test(buf) {
 			fp++
 		}
 	}
