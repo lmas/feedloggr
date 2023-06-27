@@ -24,6 +24,7 @@ func inList(item string, list []string) bool {
 	return false
 }
 
+// DiscoverFeeds tries to discover any URLs that looks like feeds, from a site.
 func DiscoverFeeds(site string) (feeds []string, err error) {
 	parsed, err := url.Parse(site)
 	if err != nil {

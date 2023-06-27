@@ -6,27 +6,27 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Item represents a single news item in a feed
+// Item represents a single news item in a feed.
 type Item struct {
 	Title   string
 	Url     string
 	Content string // optional
 }
 
-// Parser contains a custom regexp rule for parsing non-atom/rss/json feeds
+// Parser contains a custom regexp rule for parsing non- atom/rss/json feeds.
 type Parser struct {
 	Rule string // Regexp rule for gragging items' title/url fields in a feed body
 	Host string // Optional prefix the item urls with this host
 }
 
-// Feed represents a single news feed and how to download and parse it
+// Feed represents a single news feed and how to download and parse it.
 type Feed struct {
 	Title  string // Custom title
 	Url    string // URL to feed
-	Parser Parser `yaml:",omitempty"` // Custom parsing rule
+	Parser Parser `yaml:",omitempty"` // Custom parsing rule.
 }
 
-// Source returns the "correct" URL host used as the source for the feed
+// Source returns the "correct" URL host used as the source for the feed.
 func (f Feed) Source() string {
 	if f.Parser.Host != "" {
 		return f.Parser.Host
@@ -34,24 +34,24 @@ func (f Feed) Source() string {
 	return f.Url
 }
 
-// Settings contains the general Generator settings
+// Settings contains the general Generator settings.
 type Settings struct {
 	Output   string // Dir to output the feeds and internal bloom filter
 	Template string // Filepath to custom HTML template
 	MaxDays  int    // Max amount of days to keep generated pages for
 	MaxItems int    // Max amount of items per feed and per day
-	Jitter   int    // Time in seconds used for randomising rate limits.
 	Timeout  int    // Max time in seconds when trying to download a feed
+	Jitter   int    // Time in seconds used for randomising rate limits.
 	Verbose  bool   // Verbose, debug output
 }
 
-// Conf contains ALL settings for a Generator
+// Conf contains ALL settings for a Generator, usually loaded from a yaml file.
 type Conf struct {
 	Settings Settings // General settings
 	Feeds    []Feed   // Per feed settings
 }
 
-// LoadConf tries to load a Conf from path
+// LoadConf tries to load a Conf from a yaml file.
 func LoadConf(path string) (c Conf, err error) {
 	var b []byte
 	b, err = os.ReadFile(path)
@@ -63,21 +63,21 @@ func LoadConf(path string) (c Conf, err error) {
 	return
 }
 
-// ExampleConf returns a working, example Conf
+// ExampleConf returns a working example Conf.
 func ExampleConf() Conf {
 	return Conf{
 		Settings: Settings{
 			Output:   "./feeds/",
 			MaxDays:  30,
 			MaxItems: 20,
-			Jitter:   2,
 			Timeout:  30,
+			Jitter:   2,
 			Verbose:  true,
 		},
 		Feeds: []Feed{
 			{
-				Title: "Reddit",
-				Url:   "https://old.reddit.com/.rss",
+				Title: "Lemmy.link",
+				Url:   "https://lemmy.link/feeds/local.xml?sort=TopDay",
 			},
 			{
 				Title: "Hacker News",

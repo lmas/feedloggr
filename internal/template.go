@@ -19,8 +19,8 @@ const (
 	dirPerm  fs.FileMode = 0755
 )
 
-// TmplFuncs contains some custom funcs for being used in the templates
-var TmplFuncs = html.FuncMap{
+// TemplateFuncs contains some simple helper functions available inside a template.
+var TemplateFuncs = html.FuncMap{
 	"shortdate": func(t time.Time) string {
 		return t.Format("2006-01-02")
 	},
@@ -32,24 +32,29 @@ var TmplFuncs = html.FuncMap{
 	},
 }
 
+// TemplateGenerator contains the basic info for this generator.
 type TemplateGenerator struct {
 	Name    string
 	Version string
 	Source  string
 }
 
+// TemplateFeed contains a feed and it's parsed output (items or an error).
 type TemplateFeed struct {
-	Conf  Feed
-	Items []Item
-	Error error
+	Conf  Feed   // Basic config for the feed
+	Items []Item // Any parsed and filtered items
+	Error error  // Error returned when trying to download/parse the feed
 }
 
+// TemplateVars is a set of basic info that can be provided when executing/writing a template.
 type TemplateVars struct {
-	Today     time.Time
-	Generator TemplateGenerator
-	Feeds     []TemplateFeed
+	Today     time.Time         // Current time
+	Generator TemplateGenerator // Basic generator info
+	Feeds     []TemplateFeed    // List of feeds and their config, items and errors
 }
 
+// NewTemplateVars creates a new instance and adds current time and generator info to it.
+// The Feeds field will be empty and has to be manually updated.
 func NewTemplateVars() TemplateVars {
 	return TemplateVars{
 		Today: time.Now(),
@@ -61,9 +66,10 @@ func NewTemplateVars() TemplateVars {
 	}
 }
 
-// LoadTemplates returns a html.Template struct, loaded with the parsed templates and ready for use
+// LoadTemplates tries to parse a template from file or use a default template.
+// The returned template has no name and has some helper functions declared.
 func LoadTemplate(file string) (tmpl *html.Template, err error) {
-	tmpl = html.New("").Funcs(TmplFuncs)
+	tmpl = html.New("").Funcs(TemplateFuncs)
 	if len(file) == 0 {
 		tmpl, err = tmpl.Parse(defaultTemplate)
 	} else {
@@ -76,7 +82,8 @@ func LoadTemplate(file string) (tmpl *html.Template, err error) {
 	return
 }
 
-// WriteTemplate executes a loaded template and writes it's output to a file
+// WriteTemplate executes a loaded template (using provided vars) and writes
+// it's output to a file.
 func WriteTemplate(file string, tmpl *html.Template, vars interface{}) error {
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, vars); err != nil {
@@ -89,7 +96,7 @@ func WriteTemplate(file string, tmpl *html.Template, vars interface{}) error {
 	return os.WriteFile(file, bytes.TrimSpace(buf.Bytes()), filePerm)
 }
 
-// Symlink tries to make a new symlink dst pointing to file src
+// Symlink tries to make a new symlink dst pointing to file src.
 func Symlink(src, dst string) error {
 	if err := os.Remove(dst); err != nil {
 		// Ignore error if the symlink simply doesn't exist yet

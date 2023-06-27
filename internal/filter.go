@@ -13,6 +13,33 @@ import (
 	boom "github.com/tylertreat/BoomFilters"
 )
 
+// FilterStats contains basic info about the internal Bloom Filter.
+type FilterStats struct {
+	Capacity  uint    // Total capacity for the internal series of bloom filters
+	Hashes    uint    // Number of hash functions for each internal filter
+	FillRatio float64 // Average ratio of set bits across all internal filters
+}
+
+// String returns a pretty string of FilterStats.
+func (fs FilterStats) String() string {
+	return fmt.Sprintf("Capacity = %d, Hashes = %d, Fill Ratio = %f",
+		fs.Capacity,
+		fs.Hashes,
+		fs.FillRatio,
+	)
+}
+
+// returns basic info for a Bloom Filter.
+func (f *filter) stats() FilterStats {
+	return FilterStats{
+		f.bloom.Capacity(),
+		f.bloom.K(),
+		f.bloom.FillRatio(),
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 const (
 	defaultFilterRate float64 = 0.0001
 	defaultFilterPath string  = ".filter.dat"
@@ -91,29 +118,4 @@ func (f *filter) filterItems(max int, items ...Item) []Item {
 		return filtered[i].Title < filtered[j].Title
 	})
 	return filtered
-}
-
-// FilterStats contains basic info about the internal Bloom Filter
-type FilterStats struct {
-	Capacity  uint    // Total capacity for the internal series of bloom filters
-	Hashes    uint    // Number of hash functions for each internal filter
-	FillRatio float64 // Average ratio of set bits across all internal filters
-}
-
-// String returns a pretty string of FilterStats
-func (fs FilterStats) String() string {
-	return fmt.Sprintf("Capacity = %d, Hashes = %d, Fill Ratio = %f",
-		fs.Capacity,
-		fs.Hashes,
-		fs.FillRatio,
-	)
-}
-
-// FilterStats returns basic info about the internal Bloom Filter...
-func (f *filter) stats() FilterStats {
-	return FilterStats{
-		f.bloom.Capacity(),
-		f.bloom.K(),
-		f.bloom.FillRatio(),
-	}
 }

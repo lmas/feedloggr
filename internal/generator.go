@@ -16,7 +16,7 @@ const (
 	GeneratorSource  string = "https://github.com/lmas/feedloggr"
 )
 
-// Generator contains the runtime state for downloading/parsing/filtering and finally writing news feeds
+// Generator is used for downloading, parsing and then filtering items from feeds.
 type Generator struct {
 	conf       Conf
 	client     *client
@@ -24,7 +24,7 @@ type Generator struct {
 	filter     *filter
 }
 
-// New creates a new Generator instance, based on conf
+// New creates a new Generator instance, based on conf.
 func NewGenerator(conf Conf) (gen *Generator, err error) {
 	gen = &Generator{
 		conf: conf,
@@ -60,7 +60,8 @@ func (g *Generator) FetchItems(f Feed) (items []Item, err error) {
 	return
 }
 
-// Newitems downloads a feed, tries to find any items and filter out the ones that has already been seen before.
+// NewItems downloads a feed, tries to find any items and filter out the ones
+// that has already been seen before.
 func (g *Generator) NewItems(f Feed) (items []Item, err error) {
 	items, err = g.FetchItems(f)
 	if err != nil || len(items) < 1 {
@@ -71,12 +72,13 @@ func (g *Generator) NewItems(f Feed) (items []Item, err error) {
 	return
 }
 
-// FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
+// FilterStats returns a FilterStats struct with the current state of the
+// internal bloom filter.
 func (g *Generator) FilterStats() FilterStats {
 	return g.filter.stats()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 func newItem(title, url, content string) Item {
 	if title == "" {
