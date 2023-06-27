@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -28,23 +27,21 @@ func inList(item string, list []string) bool {
 func DiscoverFeeds(site string) (feeds []string, err error) {
 	parsed, err := url.Parse(site)
 	if err != nil {
-		err = fmt.Errorf("url parse: %s", err)
 		return
 	}
+
 	c := newClient(clientConf{
 		Timeout: 5,
 		Jitter:  0,
 	})
 	body, err := c.Get(site)
 	if err != nil {
-		err = fmt.Errorf("http get site: %s", err)
 		return
 	}
 	defer body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
-		err = fmt.Errorf("open body reader: %s", err)
 		return
 	}
 
@@ -60,6 +57,7 @@ func DiscoverFeeds(site string) (feeds []string, err error) {
 		if u.Host == "" {
 			u.Host = parsed.Host
 		}
+
 		// Use RequestURI so we can check both the path and query parts of the
 		// URL, for example: /bla/bla/?mode=rss
 		p := strings.ToLower(u.RequestURI())

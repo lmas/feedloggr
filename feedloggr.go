@@ -17,7 +17,7 @@ import (
 type command struct {
 	Cmd  string
 	Help string
-	Func func([]string) error
+	Func func([]string)
 }
 
 var (
@@ -48,9 +48,7 @@ func main() {
 
 	for _, c := range commands {
 		if c.Cmd == cmd {
-			if err := c.Func(args); err != nil {
-				panic(err)
-			}
+			c.Func(args)
 			return
 		}
 	}
@@ -71,45 +69,44 @@ func printUsage() {
 	}
 }
 
-func cmdHelp(args []string) error {
+func cmdHelp(args []string) {
 	printUsage()
-	return nil
 }
 
-func cmdVersion(args []string) error {
+func cmdVersion(args []string) {
 	// This is supposed to be a toilet/paper roll
 	fmt.Printf("  ,-. \n"+
 		" ( O )`~-~-~-~-~-~-~-~-~-, \n"+
 		" |`-'|  -- %s --\t | \n"+
 		" |   |     %s\t | \n"+
 		"  `-' `~-~-~-~-~-~-~-~-~-' \n", internal.GeneratorName, internal.GeneratorVersion)
-	return nil
 }
 
-func cmdExample(args []string) error {
+func cmdExample(args []string) {
 	fmt.Println(internal.ExampleConf())
-	return nil
 }
 
-func cmdTest(args []string) error {
+func cmdTest(args []string) {
 	conf, err := internal.LoadConf(*confFile)
 	if err != nil {
-		return err
+		fmt.Printf("Error loading conf %s: %s\n", *confFile, err)
+		return
 	}
 	fmt.Println(conf)
 	fmt.Printf("No errors while loading: %s\n", *confFile)
-	return nil
 }
 
-func cmdDiscover(args []string) error {
+func cmdDiscover(args []string) {
 	if len(args) != 1 {
-		return fmt.Errorf("discover command expects a single argument: URL, but got: %s", args)
+		fmt.Printf("Error discover command expects a single argument: URL, but got: %s\n", args)
+		return
 	}
 
 	url := strings.ToLower(args[0])
 	feeds, err := internal.DiscoverFeeds(url)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Printf("Error discovering feeds at %s: %s\n", url, err)
+		return
 	} else if len(feeds) < 1 {
 		fmt.Println("No feeds found")
 	} else {
@@ -118,16 +115,17 @@ func cmdDiscover(args []string) error {
 			fmt.Printf("#%d\t %s\n", i+1, f)
 		}
 	}
-	return nil
 }
 
-func cmdRegexp(args []string) error {
+func cmdRegexp(args []string) {
 	if len(args) != 2 {
-		return fmt.Errorf("regexp command expects two arguments: URL, regexp, but got: %s", args)
+		fmt.Printf("Error regexp command expects two arguments: URL, regexp, but got: %s\n", args)
+		return
 	}
 	u, err := url.Parse(args[0])
 	if err != nil {
-		return err
+		fmt.Printf("Error parsing url %s: %s\n", args[0], err)
+		return
 	}
 
 	gen, err := internal.NewGenerator(internal.Conf{
@@ -138,7 +136,8 @@ func cmdRegexp(args []string) error {
 		},
 	})
 	if err != nil {
-		return err
+		fmt.Printf("Error creating generator: %s\n", err)
+		return
 	}
 
 	items, err := gen.FetchItems(internal.Feed{
@@ -149,20 +148,22 @@ func cmdRegexp(args []string) error {
 		},
 	})
 	if err != nil {
-		return err
+		// An error will be returned when the regexp fails to match any items, too
+		fmt.Printf("Error fetching items from %s: %s\n", u.String(), err)
+		return
 	}
 
 	fmt.Println("Items found:")
 	for i, item := range items {
 		fmt.Printf("#%d\t %s\t (%s)\n", i, item.Title, item.Url)
 	}
-	return nil
 }
 
-func cmdRun(args []string) error {
+func cmdRun(args []string) {
 	conf, err := internal.LoadConf(*confFile)
 	if err != nil {
-		return err
+		fmt.Printf("Error loading config %s: %s\n", *confFile, err)
+		return
 	}
 
 	if *confVerbose != conf.Settings.Verbose {
@@ -173,22 +174,25 @@ func cmdRun(args []string) error {
 
 	tmpl, err := internal.LoadTemplate(conf.Settings.Template)
 	if err != nil {
-		return err
+		fmt.Printf("Error loading template %s: %s\n", conf.Settings.Template, err)
+		return
 	}
 
 	feeds, err := fetchFeeds(conf)
 	if err != nil {
-		return err
+		fmt.Printf("Error fetching feeds: %s\n", err)
+		return
 	}
 
 	if err := writeFiles(conf.Settings.Output, feeds, tmpl); err != nil {
-		return err
+		fmt.Printf("Error writing files: %s\n", err)
+		return
 	}
 
 	if err := removeOldFiles(conf.Settings.Output, conf.Settings.MaxDays); err != nil {
-		return err
+		fmt.Printf("Error removing old files: %s\n", err)
+		return
 	}
-	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,13 +203,12 @@ func debug(msg string, args ...interface{}) {
 	}
 }
 
-func fetchFeeds(conf internal.Conf) ([]internal.TemplateFeed, error) {
+func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
 	gen, err := internal.NewGenerator(conf)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var feeds []internal.TemplateFeed
 	for _, feed := range conf.Feeds {
 		debug("Updating %s (%s)", feed.Title, feed.Url)
 		items, errFeed := gen.NewItems(feed)
@@ -226,7 +229,7 @@ func fetchFeeds(conf internal.Conf) ([]internal.TemplateFeed, error) {
 	}
 
 	debug("Filter stats: %+v\n", gen.FilterStats())
-	return feeds, nil
+	return
 }
 
 func writeFiles(dir string, feeds []internal.TemplateFeed, tmpl *template.Template) error {

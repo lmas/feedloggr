@@ -62,9 +62,8 @@ func NewTemplateVars() TemplateVars {
 }
 
 // LoadTemplates returns a html.Template struct, loaded with the parsed templates and ready for use
-func LoadTemplate(file string) (*html.Template, error) {
-	var err error
-	tmpl := html.New("").Funcs(TmplFuncs)
+func LoadTemplate(file string) (tmpl *html.Template, err error) {
+	tmpl = html.New("").Funcs(TmplFuncs)
 	if len(file) == 0 {
 		tmpl, err = tmpl.Parse(defaultTemplate)
 	} else {
@@ -74,10 +73,7 @@ func LoadTemplate(file string) (*html.Template, error) {
 			tmpl, err = tmpl.Parse(string(b))
 		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	return tmpl, nil
+	return
 }
 
 // WriteTemplate executes a loaded template and writes it's output to a file

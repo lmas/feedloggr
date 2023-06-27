@@ -71,6 +71,11 @@ func (g *Generator) NewItems(f Feed) (items []Item, err error) {
 	return
 }
 
+// FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
+func (g *Generator) FilterStats() FilterStats {
+	return g.filter.stats()
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func newItem(title, url, content string) Item {
@@ -89,12 +94,12 @@ func newItem(title, url, content string) Item {
 }
 
 // parseFeed tries to parse a normal atom/rss/json feed and return it's items
-func (g *Generator) parseFeed(body io.ReadCloser) ([]Item, error) {
+func (g *Generator) parseFeed(body io.ReadCloser) (items []Item, err error) {
 	f, err := g.feedParser.Parse(body)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var items []Item
+
 	for _, i := range f.Items {
 		if i.Link == "" {
 			continue // You never know, I have low expectations of site feeds...
@@ -104,7 +109,7 @@ func (g *Generator) parseFeed(body io.ReadCloser) ([]Item, error) {
 		}
 		items = append(items, newItem(i.Title, i.Link, i.Content))
 	}
-	return items, nil
+	return
 }
 
 // parseFeedRegexp compiles a regexp rule and tries to parse a raw page body for custom items
@@ -152,9 +157,4 @@ func (g *Generator) parseFeedRegexp(body io.ReadCloser, parser Parser) (items []
 		err = fmt.Errorf("filter rule failed to match any items: %s", parser.Rule)
 	}
 	return
-}
-
-// FilterStats returns a FilterStats struct with the current state of the internal bloom filter.
-func (g *Generator) FilterStats() FilterStats {
-	return g.filter.stats()
 }
