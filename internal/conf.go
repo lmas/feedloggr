@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -52,16 +53,17 @@ type Conf struct {
 }
 
 // LoadConf tries to load a Conf from path
-func LoadConf(path string) (Conf, error) {
-	var c Conf
+func LoadConf(path string) (c Conf, err error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return c, err
+		err = fmt.Errorf("failed to load %s: %w", path, err)
+		return
 	}
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		return c, err
+	err = yaml.Unmarshal(b, &c)
+	if err != nil {
+		err = fmt.Errorf("failed to parse %s: %w", path, err)
 	}
-	return c, nil
+	return
 }
 
 // ExampleConf returns a working, example Conf

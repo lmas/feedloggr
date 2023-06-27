@@ -95,7 +95,7 @@ func cmdTest(args []string) error {
 		return err
 	}
 	fmt.Println(conf)
-	fmt.Println("No errors while loading config")
+	fmt.Printf("No errors while loading: %s\n", *confFile)
 	return nil
 }
 
@@ -129,6 +129,7 @@ func cmdRun(args []string) error {
 		// Weeell if one of 'em is true dey bath gotta be true nao
 		*confVerbose, conf.Settings.Verbose = true, true
 	}
+	debug("Loaded config from: %s", *confFile)
 
 	tmpl, err := internal.LoadTemplate(conf.Settings.Template)
 	if err != nil {
@@ -166,18 +167,18 @@ func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
 
 	for _, source := range conf.Feeds {
 		debug("Updating %s (%s)", source.Title, source.Url)
-		items, err := gen.NewItems(source)
-		if err != nil {
-			debug("\tError: %s", err)
+		items, err2 := gen.NewItems(source)
+		if err2 != nil {
+			debug("\tError: %s", err2)
 		} else {
 			debug("\tItems: %d", len(items))
 		}
 
-		if len(items) > 0 || err != nil {
+		if len(items) > 0 || err2 != nil {
 			feeds = append(feeds, internal.TemplateFeed{
 				Conf:  source,
 				Items: items,
-				Error: err,
+				Error: err2,
 			})
 		}
 	}
