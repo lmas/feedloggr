@@ -25,8 +25,8 @@ type Generator struct {
 }
 
 // New creates a new Generator instance, based on conf
-func NewGenerator(conf Conf) (*Generator, error) {
-	g := &Generator{
+func NewGenerator(conf Conf) (gen *Generator, err error) {
+	gen = &Generator{
 		conf: conf,
 		client: newClient(clientConf{
 			Timeout: conf.Settings.Timeout,
@@ -34,36 +34,41 @@ func NewGenerator(conf Conf) (*Generator, error) {
 		}),
 		feedParser: gofeed.NewParser(),
 	}
-	var err error
-	if g.filter, err = loadFilter(conf.Settings.Output); err != nil {
-		return nil, err
-	}
-	return g, nil
+	gen.filter, err = loadFilter(conf.Settings.Output)
+	return
 }
 
-// NewItems is a shortcut to download/parse/filter a news feed
-func (g *Generator) NewItems(f Feed) ([]Item, error) {
-	body, err := g.client.RateLimitedGet(f.Url)
+// FetchItems downloads a feed and tries to find any items in it.
+func (g *Generator) FetchItems(f Feed) (items []Item, err error) {
+	var body io.ReadCloser
+	get := g.client.Get
+	if g.conf.Settings.Jitter > 1 {
+		get = g.client.RateLimitedGet
+	}
+
+	body, err = get(f.Url)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer body.Close()
 
-	var items []Item
 	if f.Parser.Rule == "" {
-		items, err = g.ParseFeed(body)
+		items, err = g.parseFeed(body)
 	} else {
-		items, err = g.ParsePage(body, f)
+		items, err = g.parseFeedRegexp(body, f.Parser)
 	}
-	if err != nil {
-		return nil, err
-	}
+	return
+}
 
-	filtered := g.filter.filterItems(g.conf.Settings.MaxItems, items...)
-	if err = g.filter.write(); err != nil {
-		return nil, err
+// Newitems downloads a feed, tries to find any items and filter out the ones that has already been seen before.
+func (g *Generator) NewItems(f Feed) (items []Item, err error) {
+	items, err = g.FetchItems(f)
+	if err != nil || len(items) < 1 {
+		return
 	}
-	return filtered, nil
+	items = g.filter.filterItems(g.conf.Settings.MaxItems, items...)
+	err = g.filter.write()
+	return
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,8 +88,8 @@ func newItem(title, url, content string) Item {
 	}
 }
 
-// ParseFeed tries to parse a normal atom/rss/json feed and return it's items
-func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {
+// parseFeed tries to parse a normal atom/rss/json feed and return it's items
+func (g *Generator) parseFeed(body io.ReadCloser) ([]Item, error) {
 	f, err := g.feedParser.Parse(body)
 	if err != nil {
 		return nil, err
@@ -102,19 +107,19 @@ func (g *Generator) ParseFeed(body io.ReadCloser) ([]Item, error) {
 	return items, nil
 }
 
-// ParsePage sets up a bunch of regexp rules and urls and tries to parse a raw page body for custom items
-func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) (items []Item, err error) {
-	re, err := regexp.Compile(feed.Parser.Rule)
+// parseFeedRegexp compiles a regexp rule and tries to parse a raw page body for custom items
+func (g *Generator) parseFeedRegexp(body io.ReadCloser, parser Parser) (items []Item, err error) {
+	re, err := regexp.Compile(parser.Rule)
 	if err != nil {
 		return
 	}
 	it, iu, ic := re.SubexpIndex("title"), re.SubexpIndex("url"), re.SubexpIndex("content")
 	if it == -1 || iu == -1 {
-		err = fmt.Errorf("filter rule missing title or url capture group: %s", feed.Parser.Rule)
+		err = fmt.Errorf("filter rule missing title or url capture group: %s", parser.Rule)
 		return
 	}
 	// blanket trust in the Host field, no matter what it's set as (or not set at all)
-	feedUrl, err := url.Parse(feed.Parser.Host)
+	feedUrl, err := url.Parse(parser.Host)
 	if err != nil {
 		return
 	}
@@ -144,7 +149,7 @@ func (g *Generator) ParsePage(body io.ReadCloser, feed Feed) (items []Item, err 
 	}
 
 	if len(items) < 1 {
-		err = fmt.Errorf("filter rule failed to match any items: %s", feed.Parser.Rule)
+		err = fmt.Errorf("filter rule failed to match any items: %s", parser.Rule)
 	}
 	return
 }

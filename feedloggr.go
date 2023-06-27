@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -28,9 +29,10 @@ var (
 
 func main() {
 	commands = []command{
-		{"discover", "Try discover feeds from URL", cmdDiscover},
+		{"discover", "Try discover feeds from <URL>", cmdDiscover},
 		{"example", "Print example config", cmdExample},
 		{"help", "Print this help message and exit", cmdHelp},
+		{"regexp", "Try parsing items from <URL> using <regexp> rule", cmdRegexp},
 		{"run", "Update feeds and output new page", cmdRun},
 		{"test", "Try loading config", cmdTest},
 		{"version", "Print version information", cmdVersion},
@@ -119,6 +121,44 @@ func cmdDiscover(args []string) error {
 	return nil
 }
 
+func cmdRegexp(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("regexp command expects two arguments: URL, regexp, but got: %s", args)
+	}
+	u, err := url.Parse(args[0])
+	if err != nil {
+		return err
+	}
+
+	gen, err := internal.NewGenerator(internal.Conf{
+		Settings: internal.Settings{
+			Timeout:  10,
+			Jitter:   0,
+			MaxItems: 30,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	items, err := gen.FetchItems(internal.Feed{
+		Url: u.String(),
+		Parser: internal.Parser{
+			Rule: args[1],
+			Host: u.Host,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Items found:")
+	for i, item := range items {
+		fmt.Printf("#%d\t %s\t (%s)\n", i, item.Title, item.Url)
+	}
+	return nil
+}
+
 func cmdRun(args []string) error {
 	conf, err := internal.LoadConf(*confFile)
 	if err != nil {
@@ -159,32 +199,34 @@ func debug(msg string, args ...interface{}) {
 	}
 }
 
-func fetchFeeds(conf internal.Conf) (feeds []internal.TemplateFeed, err error) {
+func fetchFeeds(conf internal.Conf) ([]internal.TemplateFeed, error) {
 	gen, err := internal.NewGenerator(conf)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	for _, source := range conf.Feeds {
-		debug("Updating %s (%s)", source.Title, source.Url)
-		items, err2 := gen.NewItems(source)
-		if err2 != nil {
-			debug("\tError: %s", err2)
-		} else {
+	var feeds []internal.TemplateFeed
+	for _, feed := range conf.Feeds {
+		debug("Updating %s (%s)", feed.Title, feed.Url)
+		items, errFeed := gen.NewItems(feed)
+		if errFeed != nil {
+			debug("\tError: %s", errFeed)
+		} else if len(items) > 0 {
 			debug("\tItems: %d", len(items))
+		} else {
+			debug("No items/errors")
+			continue
 		}
 
-		if len(items) > 0 || err2 != nil {
-			feeds = append(feeds, internal.TemplateFeed{
-				Conf:  source,
-				Items: items,
-				Error: err2,
-			})
-		}
+		feeds = append(feeds, internal.TemplateFeed{
+			Conf:  feed,
+			Items: items,
+			Error: errFeed,
+		})
 	}
 
 	debug("Filter stats: %+v\n", gen.FilterStats())
-	return
+	return feeds, nil
 }
 
 func writeFiles(dir string, feeds []internal.TemplateFeed, tmpl *template.Template) error {
@@ -194,6 +236,7 @@ func writeFiles(dir string, feeds []internal.TemplateFeed, tmpl *template.Templa
 	if err := internal.WriteTemplate(p, tmpl, v); err != nil {
 		return err
 	}
+
 	debug("Wrote %s", p)
 	if err := internal.Symlink(p, filepath.Join(dir, "index.html")); err != nil {
 		return err
