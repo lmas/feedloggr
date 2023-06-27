@@ -75,16 +75,18 @@ func (f *filter) write() error {
 func (f *filter) filterItems(max int, items ...Item) []Item {
 	if len(items) < 1 {
 		return nil
-	} else if len(items) > max {
-		items = items[:max]
 	}
-	// TODO: avoid making new slice?
+
 	var filtered []Item
 	for _, i := range items {
 		if f.bloom.TestAndAdd([]byte(i.Url)) == false {
 			filtered = append(filtered, i)
+			if len(filtered) >= max {
+				break
+			}
 		}
 	}
+
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].Title < filtered[j].Title
 	})
