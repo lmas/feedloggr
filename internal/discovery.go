@@ -8,11 +8,17 @@ import (
 )
 
 var discoverNames = []string{
-	"rss",
+	// These strings have been manually confirmed to be existing in the wild
+	// and catches a clear majority of all valid feeds (on a single page).
 	"atom",
 	"feed",
-	"news",
-	// "xml", // Causes too many false positives, but it may catch something valid..?
+	"rss",
+
+	// Following strings are hypothetical but haven't been confirmed to catch
+	// any feeds that the above strings didn't already find.
+	// They also causes too many false positives and are disabled for now.
+	// "news",
+	// "xml",
 }
 
 func inList(item string, list []string) bool {
