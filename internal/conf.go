@@ -68,6 +68,7 @@ func ExampleConf() Conf {
 	return Conf{
 		Settings: Settings{
 			Output:   "./feeds/",
+			Template: "",
 			MaxDays:  30,
 			MaxItems: 20,
 			Timeout:  30,
