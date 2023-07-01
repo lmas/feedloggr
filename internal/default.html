@@ -2,91 +2,61 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>News for {{.Today | shortdate}}</title>
+    <!-- Optional stylesheet to overwrite the default style down below -->
     <link href="style.css" rel="stylesheet" type="text/css">
-    <title>{{.Today | shortdate}} | Feedloggr</title>
     <style>
-* {
-    margin: 0;
-    padding: 0;
-}
 body {
-    font: normal 16px/1.6 Arial, Helvetica, sans-serif;
-    color: #444;
-    background-color: #FFF;
     margin: auto;
     padding: 1rem;
     max-width: 960px;
 }
-header {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-}
-header h1 {
-    flex-basis: 100%;
-}
 footer {
     font-size: 0.75rem;
 }
-header, footer, .bar, .feed-empty {
+.bar {
+    border: 1px solid #DDD;
+    background-color: #EEE;
+    padding: 0.5rem 1rem;
+}
+header, footer, .bar {
     text-align: center;
 }
-header, .feed, .bar, .feed-empty {
-    margin-bottom: 1rem;
-}
-a, a:visited {
+a {
     color: #444;
     text-decoration: none;
 }
-a:hover {
-    color: #000;
-    text-decoration: underline;
-}
-.bar {
-    font-size: 1.2rem;
-    font-weight: bold;
-    background-color: #EEE;
-    border: 1px solid #DDD;
-    border-radius: 3px;
-    padding: 0.5rem 1rem;
-}
-.feed ul {
-    list-style-position: inside;
-}
-.feed ul a:visited {
+a:visited {
     color: #BBB;
+}
+a:hover {
+    text-decoration: underline;
 }
     </style>
 </head>
 <body>
     <header>
         <h1>{{.Today | shortdate}}</h1>
-        <a class="bar" href="./news-{{.Today | nextday | shortdate}}.html">&lt;</a>
+        <a class="bar" href="./news-{{.Today | prevday | shortdate}}.html">Previous</a>
         <a class="bar" href="./index.html">Latest</a>
-        <a class="bar" href="./news-{{.Today | prevday | shortdate}}.html">&gt;</a>
+        <a class="bar" href="./news-{{.Today | nextday | shortdate}}.html">Next</a>
     </header>
     {{range .Feeds}}
-    <section class="feed">
-        <h2 class="bar"><a href="{{.Conf.Source}}" rel="nofollow">{{.Conf.Title}}</a></h2>
+    <section>
+        <h2 class="bar"><a href="{{.Conf.Source}}">{{.Conf.Title}}</a></h2>
         {{if .Error}}
-        <p class="feed-error">Error while updating feed:<br />{{.Error}}</p>
+            <p>Error while updating feed:<br />{{.Error}}</p>
         {{else}}
-        <ul>
-        {{range .Items}}
-            <li><a href="{{.Url}}" rel="nofollow">{{.Title}}</a></li>
-        {{end}}
-        </ul>
+            <ul>{{range .Items}}
+                <li><a href="{{.Url}}" rel="nofollow">{{.Title}}</a></li>
+            {{end}}</ul>
         {{end}}
     </section>
     {{else}}
-    <p class="feed-empty">Sorry, no news for today!</p>
+        <p>Sorry, no news for today!</p>
     {{end}}
     <footer>
         Generated with <a href="{{.Generator.Source}}">{{.Generator.Name}} {{.Generator.Version}}</a>
     </footer>
 </body>
 </html>
-
