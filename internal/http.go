@@ -74,7 +74,9 @@ func (c *client) Get(path string) (io.ReadCloser, error) {
 		return nil, err
 	}
 	if r.StatusCode < 200 || r.StatusCode > 299 {
-		r.Body.Close()
+		// NOTE: program run shouldn't be long lived (like a server) so should
+		// be safe to ignore any .Close() errors
+		r.Body.Close() //#nosec G104
 		return nil, fmt.Errorf("bad response status: %s", r.Status)
 	}
 	return r.Body, nil

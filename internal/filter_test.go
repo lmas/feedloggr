@@ -22,6 +22,7 @@ func TestSimpleLoadAndFilter(t *testing.T) {
 	expected := []Item{
 		{"aaa", "https://aaa.com", ""},
 		{"bbb", "https://bbb.com", ""},
+		{"ccc", "https://ccc.com", ""},
 	}
 	if len(items) != len(expected) {
 		t.Fatalf("expected %d items, got %d", len(expected), len(items))
