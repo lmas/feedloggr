@@ -45,6 +45,30 @@ found inside the output directory that was specified in the configuration file.
 
 ## Command line options
 
+    Usage of feedloggr:
+
+    Flags
+      -conf string
+            Path to conf file (default ".feedloggr.yml")
+      -verbose
+            Print debug messages while running
+
+    Commands
+      discover
+        Try discover feeds from <URL>
+      example
+        Print example config
+      help
+        Print this help message and exit
+      regexp
+        Try parsing items from <URL> using <regexp> rule
+      run
+        Update feeds and output new page
+      test
+        Try loading config
+      version
+        Print version information
+
 ```
 Usage of feedloggr:
     -conf string
@@ -69,58 +93,54 @@ but can be overridden with the `-conf` flag.
 
 Global configuration settings.
 
-**output**
+*output*
 
     Output directory where generated pages and link filter are stored.
 
-**template**
+*template*
 
     Optional filepath to custom HTML template.
 
-**maxdays**
+*maxdays*
 
     Optional max amount of days to keep the generated pages for.
 
-**maxitems**
+*maxitems*
 
     Max amount of new items to fetch from each feed.
 
-**timeout**
+*timeout*
 
     Max time (in seconds) to try download a feed, before timing out.
 
-**jitter**
+*jitter*
 
     Max time (in seconds) to randomly apply, as a wait time, between each feed update.
 
-**verbose**
+*verbose*
 
-   Show verbose output when running.
+    Show verbose output when running.
 
 ### feeds
 
 List of Atom/RSS/JSON feeds.
 
-**title**
+*title*
 
     Custom title for a feed.
 
-**url**
+*url*
 
     Source feed URL for fetching new updates.
 
-### parser
+*parser.rule*
 
-Regexp rule to either parse a non-standard feed or for fetching specific parts of a regular feed.
-
-**rule**
-
-    Regexp rule for fetching items from source URL.
+    Regexp rule for fetching items from a non-feed URL.
     It must provide two capture groups called "title" and "url".
     A third, optional capture group "content" allows for capturing any exra text
     that can be used and displayed in the output template.
 
-**host**
+*parser.host*
 
     Optional host prefix for feed item URLs, which can be used to replace a missing
     value or redirect the URLs to another host.
@@ -156,64 +176,64 @@ The templating system used is [html/template], found in Go's standard library.
 
 ### Template Variables
 
-**.Today**
+*.Today*
 
     Current time. Can be customised with the template functions available down below.
 
-**.Generator.Name**
+*.Generator.Name*
 
-**.Generator.Version**
+*.Generator.Version*
 
-**.Generator.Source**
+*.Generator.Source*
 
     Basic information about this tool.
 
-**.Feeds**
+*.Feeds*
 
     A list of feeds, as defined in the config file.
     Can be iterated easily.
 
-**.Feeds.Conf.Title**
+*.Feeds.Conf.Title*
 
-**.Feeds.Conf.Url**
+*.Feeds.Conf.Url*
 
     Basic information about current feed.
 
-**.Feeds.Conf.Source**
+*.Feeds.Conf.Source*
 
     In case the `parser.host` setting has been used in the config,
     this variable will simple be the same value.
     Otherwise it defaults to `.Feeds.Conf.Url`.
 
-**.Feeds.Items**
+*.Feeds.Items*
 
     A list of unique items for the feed.
     Can be iterated easily.
 
-**.Feeds.Items.Title**
+*.Feeds.Items.Title*
 
-**.Feeds.Items.Url**
+*.Feeds.Items.Url*
 
-**.Feeds.Items.Content**
+*.Feeds.Items.Content*
 
     Basic information about current item.
 
-**.Feeds.Error**
+*.Feeds.Error*
 
     In case an error was encountered while trying to update the feed,
     this variable will contain the error message.
 
 ### Template Functions
 
-**shortdate**
+*shortdate*
 
     Can be used to shorten a long time value down to, for example: 2006-01-02.
 
-**prevday**
+*prevday*
 
     Can be used to subtract a day from a time value.
 
-**nextday**
+*nextday*
 
     Can be used to add a day to a time value.
 
@@ -226,6 +246,8 @@ Minimal example template, based on the built in default (without CSS styling):
     <head>
         <meta charset="utf-8">
         <title>News for {{.Today | shortdate}}</title>
+        <!-- Optional stylesheet to overwrite the default style -->
+        <link href="style.css" rel="stylesheet" type="text/css">
     </head>
     <body>
         <header>
