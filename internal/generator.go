@@ -12,7 +12,7 @@ import (
 // Basic info about this generator
 const (
 	GeneratorName    string = "feedloggr"
-	GeneratorVersion string = "v0.3.0"
+	GeneratorVersion string = "v0.4.0"
 	GeneratorSource  string = "https://github.com/lmas/feedloggr"
 )
 

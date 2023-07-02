@@ -1,6 +1,9 @@
 
-# feedloggr v0.3
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/lmas/feedloggr)](https://pkg.go.dev/github.com/lmas/feedloggr)
+     ,-.
+    ( O )`~-~-~-~-~-~-~-~-~-,
+    |`-'|  -- feedloggr --	 |
+    |   |     v0.4.0	 |
+     `-' `~-~-~-~-~-~-~-~-~-'
 
 Collect news from your favourite Atom/RSS/JSON feeds and generate static web pages for easy browsing.
 
@@ -68,20 +71,6 @@ found inside the output directory that was specified in the configuration file.
         Try loading config
       version
         Print version information
-
-```
-Usage of feedloggr:
-    -conf string
-        Path to conf file (default ".feedloggr.yml")
-    -example
-        Print example config and exit
-    -test
-        Load config and exit
-    -verbose
-        Print debug messages while running
-    -version
-        Print version and exit
-```
 
 
 ## Configuration
