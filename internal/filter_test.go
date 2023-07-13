@@ -18,11 +18,12 @@ func TestSimpleLoadAndFilter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("loadfilter: %s", err)
 	}
+	// Consider only the first 3 elements of the list, which consists of two
+	// unique items and one duplicate. Expected output should then be two items..
 	items := f.filterItems(3, testItems...)
 	expected := []Item{
 		{"aaa", "https://aaa.com", ""},
 		{"bbb", "https://bbb.com", ""},
-		{"ccc", "https://ccc.com", ""},
 	}
 	if len(items) != len(expected) {
 		t.Fatalf("expected %d items, got %d", len(expected), len(items))

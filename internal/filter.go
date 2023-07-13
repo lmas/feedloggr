@@ -99,23 +99,32 @@ func (f *filter) write() error {
 	return err
 }
 
-func (f *filter) filterItems(max int, items ...Item) []Item {
-	if len(items) < 1 {
-		return nil
+// filterItems tests and adds the first x elements of items to the filter,
+// returning only new elements (which can be less than the max).
+// NOTE:
+// It's important to only consider the FIRST x elements, since some feeds like
+// to build up to huge lists with hundreds of items over the years
+// (instead of rotating out old items and keeping the feed to a small size).
+// If we instead tried to fill up to x filtered items, there's a great chance
+// we would get spammy output over multiple runs!
+// Beware changing this behaviour!
+func (f *filter) filterItems(max int, items ...Item) (filtered []Item) {
+	l := len(items)
+	if l < 1 || max < 1 {
+		return
 	}
 
-	var filtered []Item
-	for _, i := range items {
+	if l < max {
+		max = l
+	}
+	for _, i := range items[:max] {
 		if f.bloom.TestAndAdd([]byte(i.Url)) == false {
 			filtered = append(filtered, i)
-			if len(filtered) >= max {
-				break
-			}
 		}
 	}
 
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].Title < filtered[j].Title
 	})
-	return filtered
+	return
 }
