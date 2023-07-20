@@ -16,15 +16,18 @@ bench:
 cover:
     go tool cover -html="{{COVER}}.out" -o="{{COVER}}.html"
 
-# Runs srouce code linters
+# Runs source code linters (ignoring errors from gosec and govulncheck)
 lint:
     go vet ./...
-    gosec -quiet -fmt=golint ./...
+    - gosec -quiet -fmt=golint ./...
+    - govulncheck ./...
 
-# Updates 3rd party packages and their version numbers
+# Updates 3rd party packages and tools
 deps:
     go get -u ./...
     go mod tidy
+    go install github.com/securego/gosec/cmd/gosec@latest
+    go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Show documentation of public parts of package, in the current dir
 [no-cd]
