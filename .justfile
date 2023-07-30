@@ -26,7 +26,7 @@ lint:
 deps:
     go get -u ./...
     go mod tidy
-    go install github.com/securego/gosec/cmd/gosec@latest
+    go install github.com/securego/gosec/v2/cmd/gosec@latest
     go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Show documentation of public parts of package, in the current dir
