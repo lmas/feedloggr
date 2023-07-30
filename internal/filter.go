@@ -69,7 +69,7 @@ func loadFilter(dir string) (*filter, error) {
 		path:  filepath.Join(dir, defaultFilterPath),
 	}
 
-	f, err := os.Open(filter.path) // #nosec G304
+	f, err := os.Open(filter.path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// If not done for a new and empty filter, the filter data won't be
@@ -81,7 +81,7 @@ func loadFilter(dir string) (*filter, error) {
 		return nil, err
 	}
 
-	defer f.Close() // #nosec G307
+	defer f.Close()
 	if _, err := bloom.ReadFrom(f); err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (f *filter) write() error {
 		return err
 	}
 
-	defer fd.Close() // #nosec G307
+	defer fd.Close()
 	_, err = f.bloom.WriteTo(fd)
 	return err
 }

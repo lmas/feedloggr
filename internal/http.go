@@ -25,7 +25,8 @@ func rateLimit(jitter int) time.Duration {
 	if jitter < 1 {
 		jitter = defaultJitter
 	}
-	i := rand.Intn(jitter*millis) + minRate
+	// gosec warns about bad rand source, but see above note for init()
+	i := rand.Intn(jitter*millis) + minRate // #nosec G404
 	return time.Duration(i) * time.Millisecond
 }
 
@@ -76,6 +77,7 @@ func (c *client) Get(path string) (io.ReadCloser, error) {
 	if r.StatusCode < 200 || r.StatusCode > 299 {
 		// NOTE: program run shouldn't be long lived (like a server) so should
 		// be safe to ignore any .Close() errors
+		// gosec warns about unhandled errors, but we don't really care about that here
 		r.Body.Close() //#nosec G104
 		return nil, fmt.Errorf("bad response status: %s", r.Status)
 	}

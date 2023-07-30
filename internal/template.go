@@ -74,7 +74,8 @@ func LoadTemplate(file string) (tmpl *html.Template, err error) {
 		tmpl, err = tmpl.Parse(defaultTemplate)
 	} else {
 		var b []byte
-		b, err = os.ReadFile(file)
+		// gosec warns about file inclusion by variable something, which we kinda wanna do here
+		b, err = os.ReadFile(file) // #nosec G304
 		if err == nil {
 			tmpl, err = tmpl.Parse(string(b))
 		}

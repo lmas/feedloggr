@@ -54,7 +54,8 @@ type Conf struct {
 // LoadConf tries to load a Conf from a yaml file.
 func LoadConf(path string) (c Conf, err error) {
 	var b []byte
-	b, err = os.ReadFile(path)
+	// gosec warns about file inclusion by variable something, which we kinda wanna do here
+	b, err = os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return
 	}
