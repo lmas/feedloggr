@@ -15,6 +15,7 @@ bench:
 # Generate pretty coverage report
 cover:
     go tool cover -html="{{COVER}}.out" -o="{{COVER}}.html"
+    firefox "{{COVER}}.html"
 
 # Runs source code linters (ignoring errors from gosec and govulncheck)
 lint:
