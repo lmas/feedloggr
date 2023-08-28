@@ -1,4 +1,7 @@
 COVER := ".cover"
+TARGETS := "$(go list ./... | grep -v /tmp)"
+# Touch go.mod in any dirs you want to "exclude" from go mod tidy,
+# for example inside tmp.
 
 # Show available recipes by default
 default:
@@ -6,7 +9,7 @@ default:
 
 # Run tests and log the test coverage
 test:
-    go test -v -coverprofile="{{COVER}}.out" ./...
+    go test -v -coverprofile="{{COVER}}.out" {{TARGETS}}
 
 # Run benchmarking
 bench:
@@ -19,13 +22,13 @@ cover:
 
 # Runs source code linters (ignoring errors from gosec and govulncheck)
 lint:
-    go vet ./...
-    - gosec -quiet -fmt=golint ./...
-    - govulncheck ./...
+    go vet {{TARGETS}}
+    - gosec -quiet -fmt=golint {{TARGETS}}
+    - govulncheck {{TARGETS}}
 
 # Updates 3rd party packages and tools
 deps:
-    go get -u ./...
+    go get -u {{TARGETS}}
     go mod tidy
     go install github.com/securego/gosec/v2/cmd/gosec@latest
     go install golang.org/x/vuln/cmd/govulncheck@latest
