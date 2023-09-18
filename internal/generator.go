@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"html"
 	"io"
 	"net/url"
 	"regexp"
@@ -89,9 +90,13 @@ func newItem(title, url, content string) Item {
 		}
 	}
 	return Item{
-		Title:   title,
+		// Some feeds tries to do the good thing and escapes their output.
+		// Need to undo that here, as golang html/template will automagically
+		// escape unsafe html entities.
+		// TODO: Not sure about URLs? Title might be an URL here... See #6 for more.
+		Title:   html.UnescapeString(title),
 		Url:     url,
-		Content: content,
+		Content: html.UnescapeString(content),
 	}
 }
 
