@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="generator" content="{{.Generator.Name}} {{.Generator.Version}}" />
     <title>News for {{.Today | shortdate}}</title>
     <!-- Optional stylesheet to overwrite the default style -->
     <link href="style.css" rel="stylesheet" type="text/css">
@@ -56,7 +57,7 @@ a:hover {
         <p>Sorry, no news for today!</p>
     {{end}}
     <footer>
-        Generated with <a href="{{.Generator.Source}}">{{.Generator.Name}} {{.Generator.Version}}</a>
+        Generated with <a href="{{.Generator.Source}}">{{.Generator.Name}}</a>
     </footer>
 </body>
 </html>
