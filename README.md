@@ -2,7 +2,7 @@
      ,-.
     ( O )`~-~-~-~-~-~-~-~-~-,
     |`-'|  -- feedloggr --	 |
-    |   |     v0.4.1	 |
+    |   |     v0.4.2	 |
      `-' `~-~-~-~-~-~-~-~-~-'
 
 Collect news from your favourite Atom/RSS/JSON feeds and generate static web pages for easy browsing.
