@@ -1,3 +1,6 @@
+# Migrated
+
+**This repo has been migrated to https://code.larus.se/lmas/feedloggr.**
 
      ,-.
     ( O )`~-~-~-~-~-~-~-~-~-,
